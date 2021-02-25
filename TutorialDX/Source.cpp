@@ -1,4 +1,4 @@
-#include "ErrorLogger.h"
+#include "RenderWindow.h"
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "DirectXTK.lib")
 
@@ -8,9 +8,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_ LPWSTR lpCmdLine,
     _In_ int nCmdShow)
 {
-    HRESULT hr = S_OK;
+    RendeWindow rw;
+    rw.Initialize(hInstance, "Title", "TestWindowClass", 800, 600);
 
-    if (SUCCEEDED(hr))
+    while (rw.ProcessMessages() == true)
+    {
+    }
+
+    //HRESULT hr = S_OK;
+
+    /*if (SUCCEEDED(hr))
     {
         MessageBoxA(NULL, "SUCCESS", "I am testing this log", NULL);
     }
@@ -18,6 +25,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     if (FAILED(hr))
     {
         ErrorLogger::Log(E_INVALIDARG, "TestMessage");
-    }
+    }*/
+
     return 0;
 }
