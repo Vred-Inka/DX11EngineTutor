@@ -12,7 +12,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     if (SUCCEEDED(hr))
     {
-        MessageBoxA(NULL, "SUCCESS", "Cool", NULL);
+        MessageBoxA(NULL, "SUCCESS", "I am testing this log", NULL);
     }
 
     if (FAILED(hr))
