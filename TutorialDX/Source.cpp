@@ -1,4 +1,4 @@
-#include "RenderWindow.h"
+#include "Engine.h"
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "DirectXTK.lib")
 
@@ -8,10 +8,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_ LPWSTR lpCmdLine,
     _In_ int nCmdShow)
 {
-    RendeWindow rw;
-    rw.Initialize(hInstance, "Title", "TestWindowClass", 800, 600);
+    Engine engine;
+    engine.Initialize(hInstance, "Title", "TestWindowClass", 800, 600);
 
-    while (rw.ProcessMessages() == true)
+    while (engine.ProcessMessages() == true)
     {
     }
 
