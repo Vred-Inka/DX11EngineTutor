@@ -67,16 +67,6 @@ LRESULT CALLBACK HandleMsgRedirect(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 {
     switch (uMsg)
     {
-    case WM_CHAR:
-    {
-        unsigned char letter = static_cast<unsigned char>(wParam);
-        return 0;
-    }
-    case WM_KEYDOWN:
-    {
-        unsigned char keycode = static_cast<unsigned char>(wParam);
-        return 0;
-    }
     case WM_CLOSE:
     {
         DestroyWindow(hwnd);
@@ -96,16 +86,6 @@ LRESULT CALLBACK HandleMessageSetup(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 {
     switch (uMsg)
     {
-    case WM_CHAR:
-    {
-        unsigned char letter = static_cast<unsigned char>(wParam);
-        return 0;
-    }
-    case WM_KEYDOWN:
-    {
-        unsigned char keycode = static_cast<unsigned char>(wParam);
-        return 0;
-    }
     case WM_NCCREATE:
     {
         OutputDebugStringA("The window was created. \n");
