@@ -118,5 +118,8 @@
     <FxCompile Include="vertexshader.hlsl">
       <Filter>Header Files\Graphics</Filter>
     </FxCompile>
+    <FxCompile Include="pixelshader.hlsl">
+      <Filter>Header Files\Graphics</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

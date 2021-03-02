@@ -89,6 +89,16 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
 
     this->mDeviceConext->OMSetRenderTargets(1, this->mRenderTargetView.GetAddressOf(), NULL);
 
+    D3D11_VIEWPORT viewport;
+    ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+
+    viewport.TopLeftX = 0;
+    viewport.TopLeftY = 0;
+    viewport.Width = width;
+    viewport.Height = height;
+
+    this->mDeviceConext->RSSetViewports(1, &viewport);
+
     return true;
 }
 
@@ -112,12 +122,7 @@ bool Graphics::InitializeShaders()
     #endif
 #endif
     }
-
-    if (!mVertexShader.Initialize(this->mDevice, shaderFolder + L"vertexshader.cso"))
-    {
-        return false;
-    }
-
+    
     D3D11_INPUT_ELEMENT_DESC layout[] =
     { 
         {"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 }
@@ -125,11 +130,13 @@ bool Graphics::InitializeShaders()
 
     UINT numElements = ARRAYSIZE(layout);
 
-    HRESULT hr = this->mDevice->CreateInputLayout(layout, numElements, mVertexShader.GetBuffer()->GetBufferPointer(),
-        mVertexShader.GetBuffer()->GetBufferSize(), this->mInputLayout.GetAddressOf());
-    if (FAILED(hr))
+    if (!mVertexShader.Initialize(this->mDevice, shaderFolder + L"vertexshader.cso", layout, numElements))
     {
-        ErrorLogger::Log(hr, "Failed to create input layout");
+        return false;
+    }
+
+    if (!mPixelShader.Initialize(this->mDevice, shaderFolder + L"pixelshader.cso", layout, numElements))
+    {
         return false;
     }
 
