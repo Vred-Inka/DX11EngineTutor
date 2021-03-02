@@ -21,7 +21,7 @@ bool Graphics::Initialize(HWND hwnd, int width, int height)
 
 void Graphics::RenderFrame()
 {
-    float bgcolor[] = { 0.0f, 0.0f, 1.0f, 1.0f };
+    float bgcolor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
     this->mDeviceConext->ClearRenderTargetView(this->mRenderTargetView.Get(), bgcolor);
    
     this->mDeviceConext->IASetInputLayout(this->mVertexShader.GetInputLayout());
@@ -143,7 +143,8 @@ bool Graphics::InitializeShaders()
     
     D3D11_INPUT_ELEMENT_DESC layout[] =
     { 
-        {"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 }
+        {"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        {"COLOR", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
     UINT numElements = ARRAYSIZE(layout);
@@ -165,11 +166,9 @@ bool Graphics::InitializeScene()
 {
     Vertex v[] =
     {
-        Vertex(-0.1f, 0.0f),
-        Vertex(0.1f, 0.0f),
-        Vertex(0.0f, 0.0f),
-        Vertex(0.0f, 0.1f),
-        Vertex(0.1f, 0.1f),
+        Vertex(-0.5f, -0.5f, 1.0f, 0.0f, 0.0f),
+        Vertex(0.0f, 0.5f, 0.0f, 1.0f, 0.0f),
+        Vertex(0.5f, -0.0f, 0.0f, 0.0f, 1.0f),
     };
 
     struct SimpleVertexCombined
