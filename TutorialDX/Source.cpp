@@ -11,19 +11,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     while (engine.ProcessMessages() == true)
     {
         engine.Update();
+        engine.RenderFrame();
     }
-
-    //HRESULT hr = S_OK;
-
-    /*if (SUCCEEDED(hr))
-    {
-        MessageBoxA(NULL, "SUCCESS", "I am testing this log", NULL);
-    }
-
-    if (FAILED(hr))
-    {
-        ErrorLogger::Log(E_INVALIDARG, "TestMessage");
-    }*/
 
     return 0;
 }

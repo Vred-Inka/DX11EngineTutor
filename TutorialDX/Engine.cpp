@@ -72,7 +72,12 @@ void Engine::Update()
             outmsg += ", Y: ";
             outmsg += std::to_string(me.GetPosY());
             outmsg += "\n";
-            OutputDebugStringA(outmsg.c_str());
+           // OutputDebugStringA(outmsg.c_str());
         }
     }
+}
+
+void Engine::RenderFrame()
+{
+    mgfx.RenderFrame();
 }
