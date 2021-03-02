@@ -69,6 +69,9 @@
     <ClCompile Include="Graphics\AdaptorReader.cpp">
       <Filter>Resource Files\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\Shaders.cpp">
+      <Filter>Resource Files\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ErrorLogger.h">
@@ -104,5 +107,16 @@
     <ClInclude Include="Graphics\AdaptorReader.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\Vertex.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Shaders.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="vertexshader.hlsl">
+      <Filter>Header Files\Graphics</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
