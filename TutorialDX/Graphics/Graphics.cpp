@@ -11,6 +11,11 @@ bool Graphics::Initialize(HWND hwnd, int width, int height)
         return false;
     }
 
+    if (!InitializeScene())
+    {
+        return false;
+    }
+
     return true;
 }
 
@@ -18,6 +23,19 @@ void Graphics::RenderFrame()
 {
     float bgcolor[] = { 0.0f, 0.0f, 1.0f, 1.0f };
     this->mDeviceConext->ClearRenderTargetView(this->mRenderTargetView.Get(), bgcolor);
+   
+    this->mDeviceConext->IASetInputLayout(this->mVertexShader.GetInputLayout());
+    this->mDeviceConext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    this->mDeviceConext->VSSetShader(mVertexShader.GetShader(), NULL, 0);
+    this->mDeviceConext->PSSetShader(mPixelShader.GetShader(), NULL, 0);
+
+    UINT stride = sizeof(Vertex);
+    UINT offset = 0;
+    this->mDeviceConext->IASetVertexBuffers(0, 1, mVertexBuffer.GetAddressOf(), &stride, &offset);
+
+    this->mDeviceConext->Draw(6, 0);
+
     this->mSwapChain->Present(1, NULL);
 }
 
@@ -137,6 +155,64 @@ bool Graphics::InitializeShaders()
 
     if (!mPixelShader.Initialize(this->mDevice, shaderFolder + L"pixelshader.cso", layout, numElements))
     {
+        return false;
+    }
+
+    return true;
+}
+
+bool Graphics::InitializeScene()
+{
+    Vertex v[] =
+    {
+        Vertex(-0.1f, 0.0f),
+        Vertex(0.1f, 0.0f),
+        Vertex(0.0f, 0.0f),
+        Vertex(0.0f, 0.1f),
+        Vertex(0.1f, 0.1f),
+    };
+
+    struct SimpleVertexCombined
+    {
+        DirectX::XMFLOAT3 Pos;
+        DirectX::XMFLOAT3 Col;
+    };
+    // Supply the actual vertex data.
+    SimpleVertexCombined verticesCombo[] =
+    {
+        DirectX::XMFLOAT3(0.0f, 0.5f, 0.5f),
+        DirectX::XMFLOAT3(0.0f, 0.0f, 0.5f),
+        DirectX::XMFLOAT3(0.5f, -0.5f, 0.5f),
+        DirectX::XMFLOAT3(0.5f, 0.0f, 0.0f),
+        DirectX::XMFLOAT3(-0.5f, -0.5f, 0.5f),
+        DirectX::XMFLOAT3(0.0f, 0.5f, 0.0f),
+    };
+
+    D3D11_BUFFER_DESC vertexBufferDesc;
+    ZeroMemory(&vertexBufferDesc, sizeof(D3D11_BUFFER_DESC));
+
+    vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    vertexBufferDesc.ByteWidth = sizeof(Vertex) * ARRAYSIZE(v);
+    vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vertexBufferDesc.CPUAccessFlags = 0;
+    vertexBufferDesc.MiscFlags = 0;
+
+    D3D11_BUFFER_DESC bufferDesc;
+    bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    bufferDesc.ByteWidth = sizeof(SimpleVertexCombined) * 3;
+    bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    bufferDesc.CPUAccessFlags = 0;
+    bufferDesc.MiscFlags = 0;
+    
+
+    D3D11_SUBRESOURCE_DATA vertexBufferData;
+    ZeroMemory(&vertexBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
+    vertexBufferData.pSysMem = v;
+
+    HRESULT hr = this->mDevice->CreateBuffer(&vertexBufferDesc, &vertexBufferData, this->mVertexBuffer.GetAddressOf());
+    if (FAILED(hr))
+    {
+        ErrorLogger::Log(hr, "Failed to create vertex buffer.");       
         return false;
     }
 
