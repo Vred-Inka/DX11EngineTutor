@@ -35,7 +35,7 @@ bool RendeWindow::Initialize(WindowContainer* pWindowContainer, HINSTANCE hInsta
     SetForegroundWindow(this->mHandle);
     SetFocus(this->mHandle);
 
-    return false;
+    return true;
 }
 
 bool RendeWindow::ProcessMessages()
@@ -60,6 +60,11 @@ bool RendeWindow::ProcessMessages()
     }
 
     return true;
+}
+
+HWND RendeWindow::GetHWND() const
+{
+    return this->mHandle;
 }
 
 

@@ -2,7 +2,17 @@
 
 bool Engine::Initialize(HINSTANCE hInstance, std::string windowTitle, std::string windowClass, int width, int height)
 {
-    return this->mRenderWindow.Initialize(this, hInstance, windowTitle, windowClass, width, height);
+    if (!this->mRenderWindow.Initialize(this, hInstance, windowTitle, windowClass, width, height))
+    {
+        return false;
+    }
+
+    if (!mgfx.Initialize(this->mRenderWindow.GetHWND(), width, height))
+    {
+        return false;
+    }
+
+    return true;
 }
 
 bool Engine::ProcessMessages()
