@@ -44,20 +44,25 @@ void Engine::Update()
     while (!mMouse.EventBufferIsEmpty())
     {
         MouseEvent me = mMouse.ReadEvent();
-        std::string outmsg = "X: ";
-        outmsg += std::to_string(me.GetPosX());
-        outmsg += ", Y: ";
-        outmsg += std::to_string(me.GetPosY());
-        outmsg += "\n";
-        //OutputDebugStringA(outmsg.c_str());
 
         if (me.GetType() == MouseEvent::EventType::WheelUp)
         {
             OutputDebugStringA("MouseEvent::EventType::WheelUp\n");
         }
+
         if (me.GetType() == MouseEvent::EventType::WheelDown)
         {
             OutputDebugStringA("MouseEvent::EventType::WheelDown\n");
+        }
+
+        if (me.GetType() == MouseEvent::EventType::RAW_MOVE)
+        {
+            std::string outmsg = "X: ";
+            outmsg += std::to_string(me.GetPosX());
+            outmsg += ", Y: ";
+            outmsg += std::to_string(me.GetPosY());
+            outmsg += "\n";
+            OutputDebugStringA(outmsg.c_str());
         }
     }
 }
