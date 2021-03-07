@@ -23,19 +23,22 @@ void Graphics::RenderFrame()
 {
     float bgcolor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
     this->mDeviceConext->ClearRenderTargetView(this->mRenderTargetView.Get(), bgcolor);
+    this->mDeviceConext->ClearDepthStencilView(this->mDepthStencilView.Get(), D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
    
     this->mDeviceConext->IASetInputLayout(this->mVertexShader.GetInputLayout());
-    this->mDeviceConext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    this->mDeviceConext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
     this->mDeviceConext->RSSetState(this->mRasterizerState.Get());
-
+    this->mDeviceConext->OMSetDepthStencilState(this->mDepthStencilState.Get(), 0);
     this->mDeviceConext->VSSetShader(mVertexShader.GetShader(), NULL, 0);
     this->mDeviceConext->PSSetShader(mPixelShader.GetShader(), NULL, 0);
 
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
-    this->mDeviceConext->IASetVertexBuffers(0, 1, mVertexBuffer.GetAddressOf(), &stride, &offset);
+    this->mDeviceConext->IASetVertexBuffers(0, 1, mVertexBuffer2.GetAddressOf(), &stride, &offset);
+    this->mDeviceConext->Draw(3, 0);
 
-    this->mDeviceConext->Draw(6, 0);
+    this->mDeviceConext->IASetVertexBuffers(0, 1, mVertexBuffer.GetAddressOf(), &stride, &offset);
+    this->mDeviceConext->Draw(3, 0);
 
     this->mSwapChain->Present(1, NULL);
 }
@@ -106,8 +109,52 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
         return false;
     }
 
-    this->mDeviceConext->OMSetRenderTargets(1, this->mRenderTargetView.GetAddressOf(), NULL);
+    D3D11_TEXTURE2D_DESC depthStencilDesc;
+    depthStencilDesc.Width = width;
+    depthStencilDesc.Height = height;
+    depthStencilDesc.MipLevels = 1;
+    depthStencilDesc.ArraySize = 1;
+    depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthStencilDesc.SampleDesc.Count = 1;
+    depthStencilDesc.SampleDesc.Quality = 0;
+    depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
+    depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    depthStencilDesc.CPUAccessFlags = 0;
+    depthStencilDesc.MiscFlags = 0;
 
+    hr = this->mDevice->CreateTexture2D(&depthStencilDesc, NULL, this->mDepthStencilBuffer.GetAddressOf());
+    if (FAILED(hr))
+    {
+        ErrorLogger::Log(hr, "Failed to create depth stencil buffer.");
+        return false;
+    }
+
+    hr = this->mDevice->CreateDepthStencilView(this->mDepthStencilBuffer.Get(), NULL, this->mDepthStencilView.GetAddressOf());
+    if (FAILED(hr))
+    {
+        ErrorLogger::Log(hr, "Failed to create depth stencil view.");
+        return false;
+    }
+
+    this->mDeviceConext->OMSetRenderTargets(1, this->mRenderTargetView.GetAddressOf(), this->mDepthStencilView.Get());
+
+    //create depth stencil state
+    D3D11_DEPTH_STENCIL_DESC depthStencilD;
+    ZeroMemory(&depthStencilD, sizeof(D3D11_DEPTH_STENCIL_DESC));
+
+    depthStencilD.DepthEnable = true;
+    depthStencilD.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
+    depthStencilD.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
+
+    hr = this->mDevice->CreateDepthStencilState(&depthStencilD, this->mDepthStencilState.GetAddressOf());
+    if (FAILED(hr))
+    {
+        ErrorLogger::Log(hr, "Failed to create depth Sencil state.");
+        return false;
+    }
+
+
+    //Create view port  
     D3D11_VIEWPORT viewport;
     ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
 
@@ -115,7 +162,8 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
     viewport.TopLeftY = 0;
     viewport.Width = width;
     viewport.Height = height;
-
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
     //Set the vieport
     this->mDeviceConext->RSSetViewports(1, &viewport);
 
@@ -123,9 +171,9 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
     D3D11_RASTERIZER_DESC rasterizerDesc;
     ZeroMemory(&rasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
 
-    rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
+    rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
     rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
-    rasterizerDesc.FrontCounterClockwise = TRUE;
+    rasterizerDesc.FrontCounterClockwise = FALSE;
     
     hr = this->mDevice->CreateRasterizerState(&rasterizerDesc, this->mRasterizerState.GetAddressOf());
 
@@ -162,7 +210,7 @@ bool Graphics::InitializeShaders()
     
     D3D11_INPUT_ELEMENT_DESC layout[] =
     { 
-        {"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        {"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 },
         {"COLOR", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
@@ -185,25 +233,9 @@ bool Graphics::InitializeScene()
 {
     Vertex v[] =
     {
-        Vertex(-0.5f, -0.5f, 1.0f, 0.0f, 0.0f),
-        Vertex(0.0f, 0.5f, 0.0f, 1.0f, 0.0f),
-        Vertex(0.5f, -0.0f, 0.0f, 0.0f, 1.0f),
-    };
-
-    struct SimpleVertexCombined
-    {
-        DirectX::XMFLOAT3 Pos;
-        DirectX::XMFLOAT3 Col;
-    };
-    // Supply the actual vertex data.
-    SimpleVertexCombined verticesCombo[] =
-    {
-        DirectX::XMFLOAT3(0.0f, 0.5f, 0.5f),
-        DirectX::XMFLOAT3(0.0f, 0.0f, 0.5f),
-        DirectX::XMFLOAT3(0.5f, -0.5f, 0.5f),
-        DirectX::XMFLOAT3(0.5f, 0.0f, 0.0f),
-        DirectX::XMFLOAT3(-0.5f, -0.5f, 0.5f),
-        DirectX::XMFLOAT3(0.0f, 0.5f, 0.0f),
+        Vertex(-0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f),
+        Vertex(0.0f,   0.5f, 0.0f,  1.0f, 0.0f, 0.0f),
+        Vertex(0.5f,  -0.5f, 0.0f,  1.0f, 0.0f, 0.0f),
     };
 
     D3D11_BUFFER_DESC vertexBufferDesc;
@@ -215,14 +247,6 @@ bool Graphics::InitializeScene()
     vertexBufferDesc.CPUAccessFlags = 0;
     vertexBufferDesc.MiscFlags = 0;
 
-    D3D11_BUFFER_DESC bufferDesc;
-    bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    bufferDesc.ByteWidth = sizeof(SimpleVertexCombined) * 3;
-    bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bufferDesc.CPUAccessFlags = 0;
-    bufferDesc.MiscFlags = 0;
-    
-
     D3D11_SUBRESOURCE_DATA vertexBufferData;
     ZeroMemory(&vertexBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
     vertexBufferData.pSysMem = v;
@@ -231,6 +255,34 @@ bool Graphics::InitializeScene()
     if (FAILED(hr))
     {
         ErrorLogger::Log(hr, "Failed to create vertex buffer.");       
+        return false;
+    }
+
+
+    Vertex v2[] =
+    {
+        Vertex(-.25f, -0.25f, 0.5f,  1.0f, 1.0f, 0.0f),
+        Vertex(0.25f,  0.25f, 0.5f,  1.0f, 1.0f, 0.0f),
+        Vertex(0.25f, -0.25f, 0.5f,  1.0f, 1.0f, 0.0f)
+    };
+    
+    D3D11_BUFFER_DESC vertexBufferDesc2;
+    ZeroMemory(&vertexBufferDesc2, sizeof(D3D11_BUFFER_DESC));
+
+    vertexBufferDesc2.Usage = D3D11_USAGE_DEFAULT;
+    vertexBufferDesc2.ByteWidth = sizeof(Vertex) * ARRAYSIZE(v2);
+    vertexBufferDesc2.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vertexBufferDesc2.CPUAccessFlags = 0;
+    vertexBufferDesc2.MiscFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA vertexBufferData2;
+    ZeroMemory(&vertexBufferData2, sizeof(D3D11_SUBRESOURCE_DATA));
+    vertexBufferData2.pSysMem = v2;
+
+    hr = this->mDevice->CreateBuffer(&vertexBufferDesc2, &vertexBufferData2, this->mVertexBuffer2.GetAddressOf());
+    if (FAILED(hr))
+    {
+        ErrorLogger::Log(hr, "Failed to create vertex buffer.");
         return false;
     }
 

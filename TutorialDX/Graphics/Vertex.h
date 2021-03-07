@@ -4,12 +4,12 @@
 struct Vertex
 {
     Vertex() {};
-    Vertex(float x, float y, float r, float g, float b)
-        :mPos(x, y), mColor(r, g, b)
+    Vertex(float x, float y, float z, float r, float g, float b)
+        :mPos(x, y, z), mColor(r, g, b)
     {
     }
 
-    DirectX::XMFLOAT2 mPos;
+    DirectX::XMFLOAT3 mPos;
     DirectX::XMFLOAT3 mColor;
 };
 
