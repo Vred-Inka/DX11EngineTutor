@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include <math.h>
 
 bool Engine::Initialize(HINSTANCE hInstance, std::string windowTitle, std::string windowClass, int width, int height)
 {
@@ -81,3 +82,5 @@ void Engine::RenderFrame()
 {
     mgfx.RenderFrame();
 }
+
+

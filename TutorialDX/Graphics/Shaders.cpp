@@ -62,7 +62,7 @@ bool PixelShader::Initialize(Microsoft::WRL::ComPtr<ID3D11Device>& device, std::
         NULL, this->mShader.GetAddressOf());
     if (FAILED(hr))
     {
-        std::wstring errorMsg = L"Failed to create vertex shader: ";
+        std::wstring errorMsg = L"Failed to create pixel shader: ";
         errorMsg += shaderpath;
         ErrorLogger::Log(hr, errorMsg);
         return false;
