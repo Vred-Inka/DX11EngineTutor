@@ -7,7 +7,7 @@
 #include <WICTextureLoader.h>
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
-#include "ConstantBufferType.h"
+#include "ConstantBuffer.h"
 
 class Graphics 
 {
@@ -42,7 +42,7 @@ private:
 
     VertexBuffer<Vertex> mVertexBuffer;
     IndexBuffer mIndicesBuffer;
-    Microsoft::WRL::ComPtr<ID3D11Buffer> mConstantBuffer;
+    ConstantBuffer<CB_VS_vertexshader> mConstantBuffer;
 
     Microsoft::WRL::ComPtr<ID3D11DepthStencilView> mDepthStencilView;
     Microsoft::WRL::ComPtr<ID3D11Texture2D> mDepthStencilBuffer;
