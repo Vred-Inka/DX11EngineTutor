@@ -35,12 +35,24 @@ void Graphics::RenderFrame()
     this->mDeviceConext->VSSetShader(mVertexShader.GetShader(), NULL, 0);
     this->mDeviceConext->PSSetShader(mPixelShader.GetShader(), NULL, 0);
 
-    UINT stride = sizeof(Vertex);
     UINT offset = 0;
 
+    //Update Constant Buffer
+    CB_VS_vertexshader data;
+    data.xOffset = 0.0f;
+    data.yOffset = 0.5f;
+
+    D3D11_MAPPED_SUBRESOURCE mappedResorce;
+    HRESULT hr = this->mDeviceConext->Map(mConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResorce);
+    CopyMemory(mappedResorce.pData, &data, sizeof(CB_VS_vertexshader));
+    this->mDeviceConext->Unmap(mConstantBuffer.Get(), 0);
+    this->mDeviceConext->VSSetConstantBuffers(0, 1, mConstantBuffer.GetAddressOf());
+
+
     this->mDeviceConext->PSSetShaderResources(0, 1, this->mTexture.GetAddressOf());
-    this->mDeviceConext->IASetVertexBuffers(0, 1, mVertexBuffer.GetAddressOf(), &stride, &offset);
-    this->mDeviceConext->Draw(6, 0);
+    this->mDeviceConext->IASetVertexBuffers(0, 1, mVertexBuffer.GetAddressOf(), mVertexBuffer.StridePtr(), &offset);
+    this->mDeviceConext->IASetIndexBuffer(mIndicesBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+    this->mDeviceConext->DrawIndexed(mIndicesBuffer.BufferSize(), 0, 0);
 
     //draw text
     mSpriteBatch->Begin();
@@ -147,35 +159,19 @@ bool Graphics::InitializeShaders()
 }
 
 bool Graphics::InitializeScene()
-{
-    Vertex v[] =
+{    
+    if (!CreateVertexBuffer())
     {
-        Vertex(-0.5f, -0.5f, 1.0f,  0.0f, 1.0f),
-        Vertex(-0.5f,  0.5f, 1.0f,  0.0f, 0.0f),
-        Vertex( 0.5f,  0.5f, 1.0f,  1.0f, 0.0f),
+        return false;
+    }
 
-        Vertex(-0.5f, -0.5f, 1.0f,  0.0f, 1.0f),
-        Vertex( 0.5f,  0.5f, 1.0f,  1.0f, 0.0f),
-        Vertex( 0.5f, -0.5f, 1.0f,  1.0f, 1.0f),
-    };
-
-    D3D11_BUFFER_DESC vertexBufferDesc;
-    ZeroMemory(&vertexBufferDesc, sizeof(D3D11_BUFFER_DESC));
-
-    vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    vertexBufferDesc.ByteWidth = sizeof(Vertex) * ARRAYSIZE(v);
-    vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vertexBufferDesc.CPUAccessFlags = 0;
-    vertexBufferDesc.MiscFlags = 0;
-
-    D3D11_SUBRESOURCE_DATA vertexBufferData;
-    ZeroMemory(&vertexBufferData, sizeof(D3D11_SUBRESOURCE_DATA));
-    vertexBufferData.pSysMem = v;
-
-    HRESULT hr = this->mDevice->CreateBuffer(&vertexBufferDesc, &vertexBufferData, this->mVertexBuffer.GetAddressOf());
-    if (FAILED(hr))
+    if (!CreateIndexesBuffer())
     {
-        ErrorLogger::Log(hr, "Failed to create vertex buffer.");       
+        return false;
+    }
+
+    if (!CreateConstantBuffer())
+    {
         return false;
     }
 
@@ -184,6 +180,64 @@ bool Graphics::InitializeScene()
         return false;
     }
 
+    return true;
+}
+
+bool Graphics::CreateVertexBuffer()
+{
+    Vertex v[] =
+    {
+        Vertex(-0.5f, -0.5f, 1.0f,  0.0f, 1.0f),
+        Vertex(-0.5f,  0.5f, 1.0f,  0.0f, 0.0f),
+        Vertex(0.5f,  0.5f, 1.0f,  1.0f, 0.0f),
+        Vertex(0.5f, -0.5f, 1.0f,  1.0f, 1.0f),
+    };
+
+    HRESULT hr = this->mVertexBuffer.Initialize(this->mDevice.Get(), v, ARRAYSIZE(v));
+    if (FAILED(hr))
+    {
+        ErrorLogger::Log(hr, "Failed to create vertex buffer.");
+        return false;
+    }
+
+    return true;
+}
+
+bool Graphics::CreateIndexesBuffer()
+{
+    DWORD indices[] =
+    {
+        0, 1, 2,
+        0, 2, 3
+    };
+
+    HRESULT hr = this->mIndicesBuffer.Initialize(this->mDevice.Get(), indices, ARRAYSIZE(indices));
+    if (FAILED(hr))
+    {
+        ErrorLogger::Log(hr, "Failed to create indices buffer.");
+        return false;
+    }
+
+    return true;
+}
+
+bool Graphics::CreateConstantBuffer()
+{
+    D3D11_BUFFER_DESC desc;
+    desc.Usage = D3D11_USAGE_DYNAMIC;
+    desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    desc.MiscFlags = 0;
+    desc.ByteWidth = static_cast<UINT>(sizeof(CB_VS_vertexshader) + (16 - (sizeof(CB_VS_vertexshader) % 16)));
+    desc.StructureByteStride = 0;
+
+    HRESULT hr = mDevice->CreateBuffer(&desc, 0, mConstantBuffer.GetAddressOf());
+    if (FAILED(hr))
+    {
+        ErrorLogger::Log(hr, "Failed to initialize constant buffer.");
+        return false;
+    }
+    
     return true;
 }
 

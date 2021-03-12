@@ -5,6 +5,9 @@
 #include <SpriteBatch.h>
 #include <SpriteFont.h>
 #include <WICTextureLoader.h>
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+#include "ConstantBufferType.h"
 
 class Graphics 
 {
@@ -16,6 +19,9 @@ private:
     bool InitializeShaders();
     bool InitializeScene();
     bool CreateTexture();
+    bool CreateVertexBuffer();
+    bool CreateIndexesBuffer();
+    bool CreateConstantBuffer();
 
     bool CreateSwapchain(HWND hwnd, int width, int height);
     bool CreateDepthStencil(int width, int height);
@@ -34,7 +40,9 @@ private:
     VertexShader mVertexShader;
     PixelShader mPixelShader;
 
-    Microsoft::WRL::ComPtr<ID3D11Buffer> mVertexBuffer;
+    VertexBuffer<Vertex> mVertexBuffer;
+    IndexBuffer mIndicesBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> mConstantBuffer;
 
     Microsoft::WRL::ComPtr<ID3D11DepthStencilView> mDepthStencilView;
     Microsoft::WRL::ComPtr<ID3D11Texture2D> mDepthStencilBuffer;
