@@ -3,7 +3,10 @@ using namespace DirectX;
 
 bool Graphics::Initialize(HWND hwnd, int width, int height)
 {
-    if (!InitializeDirectX(hwnd, width, height))
+    this->mWindowHeight = height;
+    this->mWindowWidth = width;
+
+    if (!InitializeDirectX(hwnd))
     {
         return false;
     }
@@ -36,10 +39,28 @@ void Graphics::RenderFrame()
     this->mDeviceConext->PSSetShader(mPixelShader.GetShader(), NULL, 0);
 
     UINT offset = 0;
-
+    DirectX::XMMATRIX world = DirectX::XMMatrixIdentity();
     //Update Constant Buffer
-    mConstantBuffer.data.xOffset = 0.0f;
-    mConstantBuffer.data.yOffset = 0.5f;
+    static DirectX::XMVECTOR eyePos = DirectX::XMVectorSet(0.0f, 4.0f, -2.0f, 0.0f);
+    DirectX::XMFLOAT3 eyePosFlot3;
+    DirectX::XMStoreFloat3(&eyePosFlot3, eyePos);
+    eyePosFlot3.y += 0.01f;
+    eyePos = DirectX::XMLoadFloat3(&eyePosFlot3);
+
+    static DirectX::XMVECTOR lookAtPos = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+    static DirectX::XMVECTOR upVector = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixLookAtLH(eyePos, lookAtPos, upVector);
+
+    float fovDegrees = 90.0f;
+    float fovRadians = (fovDegrees / 360.0f) * DirectX::XM_2PI;
+    float aspectRatio = static_cast<float>(this->mWindowWidth) / static_cast<float>(this->mWindowHeight);
+    float nearZ = 0.1f;
+    float farZ = 1000.0f;
+    DirectX::XMMATRIX projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(fovRadians, aspectRatio, nearZ, farZ);
+
+
+    mConstantBuffer.data.mat = world * viewMatrix * projectionMatrix;
+    mConstantBuffer.data.mat = DirectX::XMMatrixTranspose(mConstantBuffer.data.mat);
 
     if (!mConstantBuffer.ApplyChanges())
     {
@@ -61,9 +82,9 @@ void Graphics::RenderFrame()
     this->mSwapChain->Present(1, NULL);
 }
 
-bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
+bool Graphics::InitializeDirectX(HWND hwnd)
 {    
-    if (!CreateSwapchain(hwnd, width, height))
+    if (!CreateSwapchain(hwnd))
     {
         return false;
     }
@@ -83,7 +104,7 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
         return false;
     }
 
-    if (!CreateDepthStencil(width, height))
+    if (!CreateDepthStencil())
     {
         return false;
     }
@@ -95,7 +116,7 @@ bool Graphics::InitializeDirectX(HWND hwnd, int width, int height)
         return false;
     }
 
-    if (!CreateViewPort(width, height))
+    if (!CreateViewPort())
     {
         return false;
     }
@@ -186,10 +207,10 @@ bool Graphics::CreateVertexBuffer()
 {
     Vertex v[] =
     {
-        Vertex(-0.5f, -0.5f, 1.0f,  0.0f, 1.0f),
-        Vertex(-0.5f,  0.5f, 1.0f,  0.0f, 0.0f),
-        Vertex(0.5f,  0.5f, 1.0f,  1.0f, 0.0f),
-        Vertex(0.5f, -0.5f, 1.0f,  1.0f, 1.0f),
+        Vertex(-0.5f, -0.5f, 0.0f,  0.0f, 1.0f),
+        Vertex(-0.5f,  0.5f, 0.0f,  0.0f, 0.0f),
+        Vertex(0.5f,  0.5f, 0.0f,  1.0f, 0.0f),
+        Vertex(0.5f, -0.5f, 0.0f,  1.0f, 1.0f),
     };
 
     HRESULT hr = this->mVertexBuffer.Initialize(this->mDevice.Get(), v, ARRAYSIZE(v));
@@ -244,7 +265,7 @@ bool Graphics::CreateTexture()
     return true;
 }
 
-bool Graphics::CreateSwapchain(HWND hwnd, int width, int height)
+bool Graphics::CreateSwapchain(HWND hwnd)
 {
     std::vector<AdapterData> adapters = AdapterReader::GetAdapters();
 
@@ -256,8 +277,8 @@ bool Graphics::CreateSwapchain(HWND hwnd, int width, int height)
 
     DXGI_SWAP_CHAIN_DESC scd;
     ZeroMemory(&scd, sizeof(DXGI_SWAP_CHAIN_DESC));
-    scd.BufferDesc.Width = width;
-    scd.BufferDesc.Height = height;
+    scd.BufferDesc.Width = this->mWindowWidth;
+    scd.BufferDesc.Height = this->mWindowHeight;
     scd.BufferDesc.RefreshRate.Numerator = 60;
     scd.BufferDesc.RefreshRate.Denominator = 1;
     scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -298,11 +319,11 @@ bool Graphics::CreateSwapchain(HWND hwnd, int width, int height)
     return true;
 }
 
-bool Graphics::CreateDepthStencil(int width, int height)
+bool Graphics::CreateDepthStencil()
 {
     D3D11_TEXTURE2D_DESC depthStencilDesc;
-    depthStencilDesc.Width = width;
-    depthStencilDesc.Height = height;
+    depthStencilDesc.Width = this->mWindowWidth;
+    depthStencilDesc.Height = this->mWindowHeight;
     depthStencilDesc.MipLevels = 1;
     depthStencilDesc.ArraySize = 1;
     depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -350,7 +371,7 @@ bool Graphics::CreateDepthStencilState()
     return true;
 }
 
-bool Graphics::CreateViewPort(int width, int height)
+bool Graphics::CreateViewPort()
 {
     //Create view port  
     D3D11_VIEWPORT viewport;
@@ -358,8 +379,8 @@ bool Graphics::CreateViewPort(int width, int height)
 
     viewport.TopLeftX = 0;
     viewport.TopLeftY = 0;
-    viewport.Width = width;
-    viewport.Height = height;
+    viewport.Width = this->mWindowWidth;
+    viewport.Height = this->mWindowHeight;
     viewport.MinDepth = 0.0f;
     viewport.MaxDepth = 1.0f;
     //Set the vieport

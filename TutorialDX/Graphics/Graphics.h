@@ -15,7 +15,7 @@ public:
     bool Initialize(HWND hwnd, int width, int height);
     void RenderFrame();
 private:
-    bool InitializeDirectX(HWND hwnd, int width, int height);
+    bool InitializeDirectX(HWND hwnd);
     bool InitializeShaders();
     bool InitializeScene();
     bool CreateTexture();
@@ -23,10 +23,10 @@ private:
     bool CreateIndexesBuffer();
     bool CreateConstantBuffer();
 
-    bool CreateSwapchain(HWND hwnd, int width, int height);
-    bool CreateDepthStencil(int width, int height);
+    bool CreateSwapchain(HWND hwnd);
+    bool CreateDepthStencil();
     bool CreateDepthStencilState();
-    bool CreateViewPort(int width, int height);
+    bool CreateViewPort();
     bool CreateRasterizerState();
     bool InitializeFont();
 
@@ -55,4 +55,8 @@ private:
 
     Microsoft::WRL::ComPtr<ID3D11SamplerState> mSamplerState;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mTexture;
+
+    int mWindowWidth = 0;
+    int mWindowHeight = 0;
+
 };
