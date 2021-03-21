@@ -22,6 +22,8 @@ bool Graphics::Initialize(HWND hwnd, int width, int height)
         return false;
     }
 
+    SetupImGui(hwnd);
+
     return true;
 }
 
@@ -40,7 +42,8 @@ void Graphics::RenderFrame()
     this->mDeviceConext->PSSetShader(mPixelShader.GetShader(), NULL, 0);
 
     UINT offset = 0;
-    DirectX::XMMATRIX world = XMMatrixIdentity();
+    static float translationOffset[3] = { 0, 0, 0 };
+    DirectX::XMMATRIX world = XMMatrixTranslation(translationOffset[0], translationOffset[1], translationOffset[2]);
     mConstantBuffer.data.mat = world * mCamera.GetViewMatrix() * mCamera.GetProjectionMatrix();
     mConstantBuffer.data.mat = DirectX::XMMatrixTranspose(mConstantBuffer.data.mat);
 
@@ -69,8 +72,34 @@ void Graphics::RenderFrame()
     mSpriteBatch->Begin();
     mSpriteFont->DrawString(mSpriteBatch.get(), StringConverter::StringToWide(fpsString).c_str(), XMFLOAT2(0,0), Colors::White, 0.0f, XMFLOAT2(0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f));
     mSpriteBatch->End();
+
+    RenderImGuiFrame(translationOffset);
     
     this->mSwapChain->Present(0, NULL);
+}
+
+void Graphics::RenderImGuiFrame(float(&transtalionOffeset)[3])
+{
+    static int counter = 0;
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+    //create ImGui Test Window
+    ImGui::Begin("Test");
+    ImGui::Text("This is example text.");
+    if (ImGui::Button("CLick Me"))
+    {
+        counter += 1;
+    }
+    ImGui::SameLine();
+    std::string clickCount = "Click Count: " + std::to_string(counter);
+    ImGui::Text(clickCount.c_str());
+    ImGui::DragFloat3("Translation X/Y/Z", transtalionOffeset, 0.1f, -5.0f, 5.0f);
+    ImGui::End();
+    //Assemble Together Draw Data
+    ImGui::Render();
+    //Render Draw Data
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
 bool Graphics::InitializeDirectX(HWND hwnd)
@@ -195,6 +224,16 @@ bool Graphics::InitializeScene()
     mCamera.SetProjectionValues(90.0f, static_cast<float>(mWindowWidth) / static_cast<float>(mWindowHeight), 0.1f, 1000.0f);
 
     return true;
+}
+
+void Graphics::SetupImGui(HWND hwnd)
+{
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui_ImplWin32_Init(hwnd);
+    ImGui_ImplDX11_Init(this->mDevice.Get(), this->mDeviceConext.Get());
+    ImGui::StyleColorsDark();
 }
 
 bool Graphics::CreateVertexBuffer()
