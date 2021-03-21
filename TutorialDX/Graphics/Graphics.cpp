@@ -5,6 +5,7 @@ bool Graphics::Initialize(HWND hwnd, int width, int height)
 {
     this->mWindowHeight = height;
     this->mWindowWidth = width;
+    this->mFSTimer.Start();
 
     if (!InitializeDirectX(hwnd))
     {
@@ -40,8 +41,6 @@ void Graphics::RenderFrame()
 
     UINT offset = 0;
     DirectX::XMMATRIX world = XMMatrixIdentity();
-    mCamera.AdjustPosition(0.01f, 0.0f, 0.0f);
-    mCamera.SetLookAtPos(XMFLOAT3(0.0f, 0.0f, 0.0f));
     mConstantBuffer.data.mat = world * mCamera.GetViewMatrix() * mCamera.GetProjectionMatrix();
     mConstantBuffer.data.mat = DirectX::XMMatrixTranspose(mConstantBuffer.data.mat);
 
@@ -58,11 +57,20 @@ void Graphics::RenderFrame()
     this->mDeviceConext->DrawIndexed(mIndicesBuffer.BufferSize(), 0, 0);
 
     //draw text
+    static int fpsCounter = 0;
+    static std::string fpsString = "FPS: 0";
+    fpsCounter += 1;
+    if (mFSTimer.GetMilisecondsElapsed() > 1000.0f)
+    {
+        fpsString = "FPS: " + std::to_string(fpsCounter);
+        fpsCounter = 0;
+        mFSTimer.Restart();
+    }
     mSpriteBatch->Begin();
-    mSpriteFont->DrawString(mSpriteBatch.get(), L"Test strinG", XMFLOAT2(0,0), Colors::White, 0.0f, XMFLOAT2(0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f));
+    mSpriteFont->DrawString(mSpriteBatch.get(), StringConverter::StringToWide(fpsString).c_str(), XMFLOAT2(0,0), Colors::White, 0.0f, XMFLOAT2(0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f));
     mSpriteBatch->End();
     
-    this->mSwapChain->Present(1, NULL);
+    this->mSwapChain->Present(0, NULL);
 }
 
 bool Graphics::InitializeDirectX(HWND hwnd)
@@ -261,8 +269,7 @@ bool Graphics::CreateSwapchain(HWND hwnd)
         return false;
     }
 
-    DXGI_SWAP_CHAIN_DESC scd;
-    ZeroMemory(&scd, sizeof(DXGI_SWAP_CHAIN_DESC));
+    DXGI_SWAP_CHAIN_DESC scd {};
     scd.BufferDesc.Width = this->mWindowWidth;
     scd.BufferDesc.Height = this->mWindowHeight;
     scd.BufferDesc.RefreshRate.Numerator = 60;
