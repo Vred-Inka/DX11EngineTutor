@@ -34,6 +34,11 @@ public:
 
     HRESULT Initialize(ID3D11Device* device, DWORD* data, UINT numVertices)
     {
+        if (mBuffer.Get() != nullptr)
+        {
+            mBuffer.Reset();
+        }
+
         this->mBufferSize = numVertices;
 
         //Load Index Data

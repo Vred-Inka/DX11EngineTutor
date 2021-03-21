@@ -19,7 +19,7 @@ class Graphics
 public:
     bool Initialize(HWND hwnd, int width, int height);
     void RenderFrame();
-    void RenderImGuiFrame(float (&transtalionOffeset)[3]);
+    void RenderImGuiFrame(float (&transtalionOffeset)[3], float& alpha);
 
     Camera mCamera;
 
@@ -50,6 +50,8 @@ private:
 
     VertexShader mVertexShader;
     PixelShader mPixelShader;
+    ConstantBuffer<CB_VS_vertexshader> cb_vs_vertexshader;
+    ConstantBuffer<CB_PS_pixelshader> cb_ps_pixelshader;
 
     VertexBuffer<Vertex> mVertexBuffer;
     IndexBuffer mIndicesBuffer;
@@ -60,12 +62,16 @@ private:
     Microsoft::WRL::ComPtr<ID3D11DepthStencilState> mDepthStencilState;
 
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> mRasterizerState;
+    Microsoft::WRL::ComPtr<ID3D11BlendState> mBlendState;
 
     std::unique_ptr<DirectX::SpriteBatch> mSpriteBatch;
     std::unique_ptr<DirectX::SpriteFont> mSpriteFont;
 
     Microsoft::WRL::ComPtr<ID3D11SamplerState> mSamplerState;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mTexture;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mGrassTexture;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mBrickTexture;
+
 
     int mWindowWidth = 0;
     int mWindowHeight = 0;

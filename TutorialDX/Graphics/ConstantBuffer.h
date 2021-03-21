@@ -31,6 +31,11 @@ public:
     
     HRESULT Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
     {
+        if (mBuffer.Get() != nullptr)
+        {
+            mBuffer.Reset();
+        }
+
         this->mDeviceContext = deviceContext;
 
         D3D11_BUFFER_DESC desc;
