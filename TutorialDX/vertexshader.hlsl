@@ -1,43 +1,24 @@
-
-
-cbuffer cbPerObject
+cbuffer mycBuffer : register(b0)
 {
-    float4x4 gWorldViewProj;
+    float4x4 mat;
 };
-
 
 struct VS_INPUT
 {
     float3 inPos : POSITION;
-    float4 inColor : COLOR;
+    float2 inTexCoord : TEXCOORD;
 };
 
 struct VS_OUTPUT
 {
     float4 outPosition : SV_POSITION;
-    float4 outColor : COLOR;
+    float2 outTexCoord : TEXCOORD;
 };
 
 VS_OUTPUT main(VS_INPUT input)
 {
-    VS_OUTPUT vout;
-	
-	// Transform to homogeneous clip space.
-    vout.outPosition = mul(float4(input.inPos, 1.0f), gWorldViewProj);
-	
-	// Just pass vertex color into the pixel shader.
-    vout.outColor = input.inColor;
-    
-    return vout;
-}
-
-
-technique11 ColorTech
-{
-    pass P0
-    {
-        SetVertexShader(CompileShader(vs_5_0, VS()));
-        SetGeometryShader(NULL);
-      //  SetPixelShader(CompileShader(ps_5_0, PS()));
-    }
+    VS_OUTPUT output;
+    output.outPosition = mul(float4(input.inPos, 1.0f), mat);
+    output.outTexCoord = input.inTexCoord;
+    return output;
 }

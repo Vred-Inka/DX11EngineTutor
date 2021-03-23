@@ -3,6 +3,8 @@
 
 bool Engine::Initialize(HINSTANCE hInstance, std::string windowTitle, std::string windowClass, int width, int height)
 {
+    mTimer.Start();
+
     if (!this->mRenderWindow.Initialize(this, hInstance, windowTitle, windowClass, width, height))
     {
         return false;
@@ -23,6 +25,9 @@ bool Engine::ProcessMessages()
 
 void Engine::Update()
 {
+    float dt = mTimer.GetMilisecondsElapsed();
+    mTimer.Restart();
+
     while (!mKeyboard.CharBufferIsEmpty())
     {
         unsigned char ch = mKeyboard.ReadChar();
@@ -65,16 +70,46 @@ void Engine::Update()
         {
             OutputDebugStringA("MouseEvent::EventType::WheelDown\n");
         }
-
-        if (me.GetType() == MouseEvent::EventType::RAW_MOVE)
+        
+        if (mMouse.IsRightDown())
         {
-            std::string outmsg = "X: ";
-            outmsg += std::to_string(me.GetPosX());
-            outmsg += ", Y: ";
-            outmsg += std::to_string(me.GetPosY());
-            outmsg += "\n";
-           // OutputDebugStringA(outmsg.c_str());
+            if (me.GetType() == MouseEvent::EventType::RAW_MOVE)
+            {
+                this->mgfx.mCamera.AdjustRotation((float)me.GetPosY() * 0.01f, (float)me.GetPosX() * 0.01f, 0);
+            }
         }
+    }
+
+    float cameraSpeed = 0.001f;
+
+    if (mKeyboard.KeyIsPressed('W'))
+    {
+        this->mgfx.mCamera.AdjustPosition(this->mgfx.mCamera.GetForwardVector() * cameraSpeed * dt);
+    }  
+    
+    if (mKeyboard.KeyIsPressed('S'))
+    {
+        this->mgfx.mCamera.AdjustPosition(this->mgfx.mCamera.GetBackwardVector() * cameraSpeed * dt);
+    }
+
+    if (mKeyboard.KeyIsPressed('A'))
+    {
+        this->mgfx.mCamera.AdjustPosition(this->mgfx.mCamera.GetLeftVector() * cameraSpeed * dt);
+    }
+
+    if (mKeyboard.KeyIsPressed('D'))
+    {
+        this->mgfx.mCamera.AdjustPosition(this->mgfx.mCamera.GetRightVector() * cameraSpeed * dt);
+    }
+
+    if (mKeyboard.KeyIsPressed(VK_SPACE))
+    {
+        this->mgfx.mCamera.AdjustPosition(0.0f, cameraSpeed * dt, 0.0f);
+    }
+
+    if (mKeyboard.KeyIsPressed('Z'))
+    {
+        this->mgfx.mCamera.AdjustPosition(0.0f, -cameraSpeed * dt, 0.0f);
     }
 }
 

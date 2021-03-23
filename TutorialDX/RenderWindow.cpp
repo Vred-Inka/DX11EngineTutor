@@ -12,14 +12,24 @@ bool RendeWindow::Initialize(WindowContainer* pWindowContainer, HINSTANCE hInsta
 
     this->RegisterWindowClass();
 
+    int centerScreenX = GetSystemMetrics(SM_CXSCREEN) / 2 - this->mWidth / 2;
+    int centerScreenY = GetSystemMetrics(SM_CYSCREEN) / 2 - this->mHeight / 2;
+
+    RECT wr;
+    wr.left = centerScreenX;
+    wr.top = centerScreenY;
+    wr.right = wr.left + this->mWidth;
+    wr.bottom = wr.top + this->mHeight;
+    AdjustWindowRect(&wr, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, FALSE);
+
     this->mHandle = CreateWindowEx(0,
         this->mWindowClassWide.c_str(),
         this->mWindowTitleWide.c_str(),
             WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,
-            0,
-            0,
-            this->mWidth,
-            this->mHeight,
+            wr.left,
+            wr.top,
+            wr.right - wr.left,
+            wr.bottom - wr.top,
             NULL,
             NULL,
             this->mhInstance,
