@@ -82,7 +82,6 @@ void Graphics::RenderFrame()
 
         this->mDeviceConext->VSSetConstantBuffers(0, 1, this->cb_vs_vertexshader.GetAddressOf());
 
-
         this->cb_ps_pixelshader.data.alpha = alpha;
         this->cb_ps_pixelshader.ApplyChanges();
         this->mDeviceConext->PSSetConstantBuffers(0, 1, this->cb_ps_pixelshader.GetAddressOf());
@@ -97,7 +96,6 @@ void Graphics::RenderFrame()
     }
 
     {//pic       
-        static float translationOffset[3] = { 0, 0, 5.0f };
         DirectX::XMMATRIX world = XMMatrixTranslation(translationOffset[0], translationOffset[1], translationOffset[2]);
         cb_vs_vertexshader.data.mat = world * mCamera.GetViewMatrix() * mCamera.GetProjectionMatrix();
         cb_vs_vertexshader.data.mat = DirectX::XMMatrixTranspose(cb_vs_vertexshader.data.mat);
@@ -109,15 +107,17 @@ void Graphics::RenderFrame()
 
         this->mDeviceConext->VSSetConstantBuffers(0, 1, this->cb_vs_vertexshader.GetAddressOf());
 
-
         this->cb_ps_pixelshader.data.alpha = 1.0f;
         this->cb_ps_pixelshader.ApplyChanges();
         this->mDeviceConext->PSSetConstantBuffers(0, 1, this->cb_ps_pixelshader.GetAddressOf());
 
         this->mDeviceConext->PSSetShaderResources(0, 1, this->mGrassTexture.GetAddressOf());
         this->mDeviceConext->IASetVertexBuffers(0, 1, mVertexBuffer.GetAddressOf(), mVertexBuffer.StridePtr(), &offset);
+        this->mDeviceConext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         this->mDeviceConext->IASetIndexBuffer(mIndicesBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+        this->mDeviceConext->RSSetState(this->mRasterizerState.Get());
         this->mDeviceConext->DrawIndexed(mIndicesBuffer.BufferSize(), 0, 0);
+        this->mDeviceConext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
     /*
@@ -565,7 +565,7 @@ bool Graphics::CreateRasterizerState()
     D3D11_RASTERIZER_DESC rasterizerDesc;
     ZeroMemory(&rasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
 
-    rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
+    rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
     rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
     rasterizerDesc.FrontCounterClockwise = FALSE;
 
