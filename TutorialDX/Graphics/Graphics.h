@@ -20,6 +20,7 @@ public:
     bool Initialize(HWND hwnd, int width, int height);
     void RenderFrame();
     void RenderImGuiFrame(float (&transtalionOffeset)[3], float& alpha);
+    void DrawTextExemple();
 
     Camera mCamera;
 
@@ -62,6 +63,8 @@ private:
     Microsoft::WRL::ComPtr<ID3D11DepthStencilState> mDepthStencilState;
 
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> mRasterizerState;
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> mRasterizerState_CullFront;
+
     Microsoft::WRL::ComPtr<ID3D11BlendState> mBlendState;
 
     std::unique_ptr<DirectX::SpriteBatch> mSpriteBatch;

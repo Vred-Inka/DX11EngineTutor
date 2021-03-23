@@ -44,7 +44,7 @@ void Graphics::RenderFrame()
 
     UINT offset = 0;
     static float translationOffset[3] = { 0, 0, -1.0f };
-
+/*
     {//brick
         static float translationOffset[3] = { 0, 0, 4.0f };
         DirectX::XMMATRIX world = XMMatrixScaling(3.0f, 3.0f, 3.0f) *  XMMatrixTranslation(translationOffset[0], translationOffset[1], translationOffset[2]);
@@ -67,7 +67,7 @@ void Graphics::RenderFrame()
         this->mDeviceConext->IASetIndexBuffer(mIndicesBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
         this->mDeviceConext->DrawIndexed(mIndicesBuffer.BufferSize(), 0, 0);
     }
-
+    */
     static float alpha = 0.5f;
 
     {//pic       
@@ -87,12 +87,40 @@ void Graphics::RenderFrame()
         this->cb_ps_pixelshader.ApplyChanges();
         this->mDeviceConext->PSSetConstantBuffers(0, 1, this->cb_ps_pixelshader.GetAddressOf());
 
-        this->mDeviceConext->PSSetShaderResources(0, 1, this->mTexture.GetAddressOf());
+        this->mDeviceConext->PSSetShaderResources(0, 1, this->mBrickTexture.GetAddressOf());
+        this->mDeviceConext->IASetVertexBuffers(0, 1, mVertexBuffer.GetAddressOf(), mVertexBuffer.StridePtr(), &offset);
+        this->mDeviceConext->IASetIndexBuffer(mIndicesBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+        this->mDeviceConext->RSSetState(this->mRasterizerState_CullFront.Get());
+        this->mDeviceConext->DrawIndexed(mIndicesBuffer.BufferSize(), 0, 0);
+        this->mDeviceConext->RSSetState(this->mRasterizerState.Get());
+        this->mDeviceConext->DrawIndexed(mIndicesBuffer.BufferSize(), 0, 0);
+    }
+
+    {//pic       
+        static float translationOffset[3] = { 0, 0, 5.0f };
+        DirectX::XMMATRIX world = XMMatrixTranslation(translationOffset[0], translationOffset[1], translationOffset[2]);
+        cb_vs_vertexshader.data.mat = world * mCamera.GetViewMatrix() * mCamera.GetProjectionMatrix();
+        cb_vs_vertexshader.data.mat = DirectX::XMMatrixTranspose(cb_vs_vertexshader.data.mat);
+
+        if (!cb_vs_vertexshader.ApplyChanges())
+        {
+            return;
+        }
+
+        this->mDeviceConext->VSSetConstantBuffers(0, 1, this->cb_vs_vertexshader.GetAddressOf());
+
+
+        this->cb_ps_pixelshader.data.alpha = 1.0f;
+        this->cb_ps_pixelshader.ApplyChanges();
+        this->mDeviceConext->PSSetConstantBuffers(0, 1, this->cb_ps_pixelshader.GetAddressOf());
+
+        this->mDeviceConext->PSSetShaderResources(0, 1, this->mGrassTexture.GetAddressOf());
         this->mDeviceConext->IASetVertexBuffers(0, 1, mVertexBuffer.GetAddressOf(), mVertexBuffer.StridePtr(), &offset);
         this->mDeviceConext->IASetIndexBuffer(mIndicesBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
         this->mDeviceConext->DrawIndexed(mIndicesBuffer.BufferSize(), 0, 0);
     }
 
+    /*
     {//Grass
         static float translationOffset[3] = { 0, 0, 0.0f };
         DirectX::XMMATRIX world = XMMatrixScaling(3.0f, 3.0f, 3.0f) *  XMMatrixTranslation(translationOffset[0], translationOffset[1], translationOffset[2]);
@@ -115,9 +143,18 @@ void Graphics::RenderFrame()
         this->mDeviceConext->IASetIndexBuffer(mIndicesBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
         this->mDeviceConext->DrawIndexed(mIndicesBuffer.BufferSize(), 0, 0);
     }
-
+    */
 
     
+    DrawTextExemple();
+
+    RenderImGuiFrame(translationOffset, alpha);
+    
+    this->mSwapChain->Present(0, NULL);
+}
+
+void Graphics::DrawTextExemple()
+{
     //draw text
     static int fpsCounter = 0;
     static std::string fpsString = "FPS: 0";
@@ -129,12 +166,8 @@ void Graphics::RenderFrame()
         mFSTimer.Restart();
     }
     mSpriteBatch->Begin();
-    mSpriteFont->DrawString(mSpriteBatch.get(), StringConverter::StringToWide(fpsString).c_str(), XMFLOAT2(0,0), Colors::White, 0.0f, XMFLOAT2(0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f));
+    mSpriteFont->DrawString(mSpriteBatch.get(), StringConverter::StringToWide(fpsString).c_str(), XMFLOAT2(0, 0), Colors::White, 0.0f, XMFLOAT2(0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f));
     mSpriteBatch->End();
-
-    RenderImGuiFrame(translationOffset, alpha);
-    
-    this->mSwapChain->Present(0, NULL);
 }
 
 void Graphics::RenderImGuiFrame(float(&transtalionOffeset)[3], float& alpha)
@@ -145,7 +178,7 @@ void Graphics::RenderImGuiFrame(float(&transtalionOffeset)[3], float& alpha)
     ImGui::NewFrame();
     //create ImGui Test Window
     ImGui::Begin("Test");
-    ImGui::Text("This is example text.");
+    ImGui::Text("...");
    /* if (ImGui::Button("CLick Me"))
     {
         counter += 1;
@@ -301,10 +334,17 @@ bool Graphics::CreateVertexBuffer()
 {
     Vertex v[] =
     {
-        Vertex(-0.5f, -0.5f, 0.0f,  0.0f, 1.0f),
-        Vertex(-0.5f,  0.5f, 0.0f,  0.0f, 0.0f),
-        Vertex(0.5f,  0.5f, 0.0f,  1.0f, 0.0f),
-        Vertex(0.5f, -0.5f, 0.0f,  1.0f, 1.0f),
+        //front part
+        Vertex(-0.5f, -0.5f, -0.5f,  0.0f, 1.0f),
+        Vertex(-0.5f,  0.5f, -0.5f,  0.0f, 0.0f),
+        Vertex(0.5f,  0.5f, -0.5f,  1.0f, 0.0f),
+        Vertex(0.5f, -0.5f, -0.5f,  1.0f, 1.0f),
+
+        //back part
+        Vertex(-0.5f, -0.5f, 0.5f,  0.0f, 1.0f),
+        Vertex(-0.5f,  0.5f, 0.5f,  0.0f, 0.0f),
+        Vertex(0.5f,  0.5f, 0.5f,  1.0f, 0.0f),
+        Vertex(0.5f, -0.5f, 0.5f,  1.0f, 1.0f),
     };
 
     HRESULT hr = this->mVertexBuffer.Initialize(this->mDevice.Get(), v, ARRAYSIZE(v));
@@ -321,8 +361,24 @@ bool Graphics::CreateIndexesBuffer()
 {
     DWORD indices[] =
     {
+        //front
         0, 1, 2,
-        0, 2, 3
+        0, 2, 3,
+        //back
+        4, 7, 6,
+        4, 6, 5,
+        //right
+        3, 2, 6,
+        3, 6, 7,
+        //left
+        4, 5, 1,
+        4, 1, 0,
+        //top
+        1, 5, 6,
+        1, 6, 2, 
+        //bottom
+        0, 3, 7,
+        0, 7, 4
     };
 
     HRESULT hr = this->mIndicesBuffer.Initialize(this->mDevice.Get(), indices, ARRAYSIZE(indices));
@@ -514,6 +570,22 @@ bool Graphics::CreateRasterizerState()
     rasterizerDesc.FrontCounterClockwise = FALSE;
 
     HRESULT hr = this->mDevice->CreateRasterizerState(&rasterizerDesc, this->mRasterizerState.GetAddressOf());
+
+    if (FAILED(hr))
+    {
+        ErrorLogger::Log(hr, "Failed to create rasterizer state.");
+        return false;
+    }
+
+    //Create Rasterizer State for culling front
+    D3D11_RASTERIZER_DESC rasterizerDesc_CullFront;
+    ZeroMemory(&rasterizerDesc_CullFront, sizeof(D3D11_RASTERIZER_DESC));
+
+    rasterizerDesc_CullFront.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
+    rasterizerDesc_CullFront.CullMode = D3D11_CULL_MODE::D3D11_CULL_FRONT;
+    rasterizerDesc_CullFront.FrontCounterClockwise = FALSE;
+
+    hr = this->mDevice->CreateRasterizerState(&rasterizerDesc_CullFront, this->mRasterizerState_CullFront.GetAddressOf());
 
     if (FAILED(hr))
     {
