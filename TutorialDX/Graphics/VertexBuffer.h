@@ -59,11 +59,12 @@ public:
         D3D11_BUFFER_DESC vertexBufferDesc;
         ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
 
-        vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+        vertexBufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
         vertexBufferDesc.ByteWidth = sizeof(T) * numVertices;
         vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         vertexBufferDesc.CPUAccessFlags = 0;
         vertexBufferDesc.MiscFlags = 0;
+        vertexBufferDesc.StructureByteStride = 0;
 
         D3D11_SUBRESOURCE_DATA vertexBufferData;
         ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));

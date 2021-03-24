@@ -44,11 +44,12 @@ public:
         //Load Index Data
         D3D11_BUFFER_DESC indexBufferDesc;
         ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc));
-        indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+        indexBufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
         indexBufferDesc.ByteWidth = sizeof(DWORD) * numVertices;
-        indexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+        indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
         indexBufferDesc.CPUAccessFlags = 0;
         indexBufferDesc.MiscFlags = 0;
+        indexBufferDesc.StructureByteStride = 0;
 
         D3D11_SUBRESOURCE_DATA indexBufferData;
         ZeroMemory(&indexBufferData, sizeof(indexBufferData));
