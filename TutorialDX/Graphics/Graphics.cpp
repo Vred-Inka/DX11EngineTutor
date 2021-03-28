@@ -115,7 +115,7 @@ void Graphics::RenderFrame()
         this->mDeviceConext->IASetVertexBuffers(0, 1, mVertexBuffer.GetAddressOf(), mVertexBuffer.StridePtr(), &offset);
         this->mDeviceConext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         this->mDeviceConext->IASetIndexBuffer(mIndicesBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-        this->mDeviceConext->RSSetState(this->mRasterizerState.Get());
+        this->mDeviceConext->RSSetState(this->mRasterizerState_CullFront.Get());
         this->mDeviceConext->DrawIndexed(mIndicesBuffer.BufferSize(), 0, 0);
         this->mDeviceConext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
@@ -294,28 +294,36 @@ bool Graphics::InitializeShaders()
 
 bool Graphics::InitializeScene()
 {    
-    if (!CreateVertexBuffer())
+    try
     {
-        return false;
-    }
+        if (!CreateVertexBuffer())
+        {
+            return false;
+        }
 
-    if (!CreateIndexesBuffer())
-    {
-        return false;
-    }
+        if (!CreateIndexesBuffer())
+        {
+            return false;
+        }
 
-    if (!CreateConstantBuffer())
-    {
-        return false;
-    }
+        if (!CreateConstantBuffer())
+        {
+            return false;
+        }
 
-    if (!CreateTexture())
+        if (!CreateTexture())
+        {
+            return false;
+        }
+
+        mCamera.SetPosition(0.0f, 0.0f, -2.0f);
+        mCamera.SetProjectionValues(90.0f, static_cast<float>(mWindowWidth) / static_cast<float>(mWindowHeight), 0.1f, 1000.0f);
+    }
+    catch (COMException& exception)
     {
+        ErrorLogger::Log(exception);
         return false;
     }
-    
-    mCamera.SetPosition(0.0f, 0.0f, -2.0f);
-    mCamera.SetProjectionValues(90.0f, static_cast<float>(mWindowWidth) / static_cast<float>(mWindowHeight), 0.1f, 1000.0f);
 
     return true;
 }
@@ -332,25 +340,29 @@ void Graphics::SetupImGui(HWND hwnd)
 
 bool Graphics::CreateVertexBuffer()
 {
-    Vertex v[] =
+    try
     {
-        //front part
-        Vertex(-0.5f, -0.5f, -0.5f,  0.0f, 1.0f),
-        Vertex(-0.5f,  0.5f, -0.5f,  0.0f, 0.0f),
-        Vertex(0.5f,  0.5f, -0.5f,  1.0f, 0.0f),
-        Vertex(0.5f, -0.5f, -0.5f,  1.0f, 1.0f),
+        Vertex v[] =
+        {
+            //front part
+            Vertex(-0.5f, -0.5f, -0.5f,  0.0f, 1.0f),
+            Vertex(-0.5f,  0.5f, -0.5f,  0.0f, 0.0f),
+            Vertex(0.5f,  0.5f, -0.5f,  1.0f, 0.0f),
+            Vertex(0.5f, -0.5f, -0.5f,  1.0f, 1.0f),
 
-        //back part
-        Vertex(-0.5f, -0.5f, 0.5f,  0.0f, 1.0f),
-        Vertex(-0.5f,  0.5f, 0.5f,  0.0f, 0.0f),
-        Vertex(0.5f,  0.5f, 0.5f,  1.0f, 0.0f),
-        Vertex(0.5f, -0.5f, 0.5f,  1.0f, 1.0f),
-    };
+            //back part
+            Vertex(-0.5f, -0.5f, 0.5f,  0.0f, 1.0f),
+            Vertex(-0.5f,  0.5f, 0.5f,  0.0f, 0.0f),
+            Vertex(0.5f,  0.5f, 0.5f,  1.0f, 0.0f),
+            Vertex(0.5f, -0.5f, 0.5f,  1.0f, 1.0f),
+        };
 
-    HRESULT hr = this->mVertexBuffer.Initialize(this->mDevice.Get(), v, ARRAYSIZE(v));
-    if (FAILED(hr))
+        HRESULT hr = this->mVertexBuffer.Initialize(this->mDevice.Get(), v, ARRAYSIZE(v));
+        COM_ERROR_IF_FAILED(hr, "Failed to create vertex buffer.");
+    }
+    catch (COMException& exception)
     {
-        ErrorLogger::Log(hr, "Failed to create vertex buffer.");
+        ErrorLogger::Log(exception);
         return false;
     }
 
@@ -382,28 +394,25 @@ bool Graphics::CreateIndexesBuffer()
     };
 
     HRESULT hr = this->mIndicesBuffer.Initialize(this->mDevice.Get(), indices, ARRAYSIZE(indices));
-    if (FAILED(hr))
-    {
-        ErrorLogger::Log(hr, "Failed to create indices buffer.");
-        return false;
-    }
+    COM_ERROR_IF_FAILED(hr, "Failed to create indices buffer.");
 
     return true;
 }
 
 bool Graphics::CreateConstantBuffer()
 {
-    HRESULT hr = cb_vs_vertexshader.Initialize(this->mDevice.Get(), this->mDeviceConext.Get());
-    if (FAILED(hr))
+    try
     {
-        ErrorLogger::Log(hr, "Failed to initialize constant buffer.");
-        return false;
-    }
+        HRESULT hr = cb_vs_vertexshader.Initialize(this->mDevice.Get(), this->mDeviceConext.Get());
 
-    hr = cb_ps_pixelshader.Initialize(this->mDevice.Get(), this->mDeviceConext.Get());
-    if (FAILED(hr))
+        COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
+
+        hr = cb_ps_pixelshader.Initialize(this->mDevice.Get(), this->mDeviceConext.Get());
+        COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
+    }
+    catch (COMException& exception)
     {
-        ErrorLogger::Log(hr, "Failed to initialize constant buffer.");
+        ErrorLogger::Log(exception);
         return false;
     }
     
@@ -412,24 +421,20 @@ bool Graphics::CreateConstantBuffer()
 
 bool Graphics::CreateTexture()
 {
-    HRESULT hr = CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Textures\\t1.jpg", nullptr, mTexture.GetAddressOf());
-    if (FAILED(hr))
+    try
     {
-        ErrorLogger::Log(hr, "Failed to create vertex buffer.");
-        return false;
-    }
+        HRESULT hr = CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Textures\\t1.jpg", nullptr, mTexture.GetAddressOf());
+        COM_ERROR_IF_FAILED(hr, "Failed to create vertex buffer.");
 
-    hr = CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Textures\\t4.jpg", nullptr, mGrassTexture.GetAddressOf());
-    if (FAILED(hr))
-    {
-        ErrorLogger::Log(hr, "Failed to create vertex buffer.");
-        return false;
-    }
+        hr = CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Textures\\t4.jpg", nullptr, mGrassTexture.GetAddressOf());
+        COM_ERROR_IF_FAILED(hr, "Failed to create vertex buffer.");
 
-    hr = CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Textures\\t6.jpg", nullptr, mBrickTexture.GetAddressOf());
-    if (FAILED(hr))
+        hr = CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Textures\\t6.jpg", nullptr, mBrickTexture.GetAddressOf());
+        COM_ERROR_IF_FAILED(hr, "Failed to create vertex buffer.");
+    }
+    catch (COMException& exception)
     {
-        ErrorLogger::Log(hr, "Failed to create vertex buffer.");
+        ErrorLogger::Log(exception);
         return false;
     }
 
@@ -446,7 +451,7 @@ bool Graphics::CreateSwapchain(HWND hwnd)
         return false;
     }
 
-    DXGI_SWAP_CHAIN_DESC scd {};
+    DXGI_SWAP_CHAIN_DESC scd = {0};
     scd.BufferDesc.Width = this->mWindowWidth;
     scd.BufferDesc.Height = this->mWindowHeight;
     scd.BufferDesc.RefreshRate.Numerator = 60;
@@ -480,41 +485,28 @@ bool Graphics::CreateSwapchain(HWND hwnd)
         this->mDeviceConext.GetAddressOf()
     );
 
-    if (FAILED(hr))
-    {
-        ErrorLogger::Log(hr, "Failed to create device and swapchain.");
-        return false;
-    }
+    //COM_ERROR_IF_FAILED(hr, "Failed to create device and swapchain.");
 
     return true;
 }
 
 bool Graphics::CreateDepthStencil()
 {
-    D3D11_TEXTURE2D_DESC depthStencilDesc;
-    depthStencilDesc.Width = this->mWindowWidth;
-    depthStencilDesc.Height = this->mWindowHeight;
-    depthStencilDesc.MipLevels = 1;
-    depthStencilDesc.ArraySize = 1;
-    depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    depthStencilDesc.SampleDesc.Count = 1;
-    depthStencilDesc.SampleDesc.Quality = 0;
-    depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
-    depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-    depthStencilDesc.CPUAccessFlags = 0;
-    depthStencilDesc.MiscFlags = 0;
-
-    HRESULT hr = this->mDevice->CreateTexture2D(&depthStencilDesc, NULL, this->mDepthStencilBuffer.GetAddressOf());
-    if (FAILED(hr))
+    try
     {
-        ErrorLogger::Log(hr, "Failed to create depth stencil buffer.");
-        return false;
+        CD3D11_TEXTURE2D_DESC depthStencilDesc(DXGI_FORMAT_D24_UNORM_S8_UINT, mWindowWidth, mWindowHeight);
+        depthStencilDesc.MipLevels = 1;
+        depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+        HRESULT hr = this->mDevice->CreateTexture2D(&depthStencilDesc, NULL, this->mDepthStencilBuffer.GetAddressOf());
+        COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil buffer.");
+
+        hr = this->mDevice->CreateDepthStencilView(this->mDepthStencilBuffer.Get(), NULL, this->mDepthStencilView.GetAddressOf());
+        COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil view.");
     }
-
-    hr = this->mDevice->CreateDepthStencilView(this->mDepthStencilBuffer.Get(), NULL, this->mDepthStencilView.GetAddressOf());
-    if (FAILED(hr))
+    catch (COMException& exception)
     {
-        ErrorLogger::Log(hr, "Failed to create depth stencil view.");
+        ErrorLogger::Log(exception);
         return false;
     }
 
@@ -523,18 +515,18 @@ bool Graphics::CreateDepthStencil()
 
 bool Graphics::CreateDepthStencilState()
 {
-    //create depth stencil state
-    D3D11_DEPTH_STENCIL_DESC depthStencilD;
-    ZeroMemory(&depthStencilD, sizeof(D3D11_DEPTH_STENCIL_DESC));
-
-    depthStencilD.DepthEnable = true;
-    depthStencilD.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
-    depthStencilD.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
-
-    HRESULT hr = this->mDevice->CreateDepthStencilState(&depthStencilD, this->mDepthStencilState.GetAddressOf());
-    if (FAILED(hr))
+    try
     {
-        ErrorLogger::Log(hr, "Failed to create depth Sencil state.");
+        //create depth stencil state
+        CD3D11_DEPTH_STENCIL_DESC depthStencilDesc(D3D11_DEFAULT);
+        depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
+
+        HRESULT hr = this->mDevice->CreateDepthStencilState(&depthStencilDesc, this->mDepthStencilState.GetAddressOf());
+        COM_ERROR_IF_FAILED(hr, "Failed to create depth Sencil state.");
+    }
+    catch (COMException& exception)
+    {
+        ErrorLogger::Log(exception);
         return false;
     }
 
@@ -544,16 +536,7 @@ bool Graphics::CreateDepthStencilState()
 bool Graphics::CreateViewPort()
 {
     //Create view port  
-    D3D11_VIEWPORT viewport;
-    ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
-
-    viewport.TopLeftX = 0;
-    viewport.TopLeftY = 0;
-    viewport.Width = this->mWindowWidth;
-    viewport.Height = this->mWindowHeight;
-    viewport.MinDepth = 0.0f;
-    viewport.MaxDepth = 1.0f;
-    //Set the vieport
+    CD3D11_VIEWPORT viewport(0.0f, 0.0f, static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
     this->mDeviceConext->RSSetViewports(1, &viewport);
 
     return true;
@@ -562,40 +545,25 @@ bool Graphics::CreateViewPort()
 bool Graphics::CreateRasterizerState()
 {
     //Create Rasterizer State
-    D3D11_RASTERIZER_DESC rasterizerDesc;
-    ZeroMemory(&rasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
-
-    rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
-    rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
-    rasterizerDesc.FrontCounterClockwise = FALSE;
+    CD3D11_RASTERIZER_DESC rasterizerDesc(D3D11_DEFAULT);
 
     HRESULT hr = this->mDevice->CreateRasterizerState(&rasterizerDesc, this->mRasterizerState.GetAddressOf());
 
-    if (FAILED(hr))
-    {
-        ErrorLogger::Log(hr, "Failed to create rasterizer state.");
-        return false;
-    }
+    COM_ERROR_IF_FAILED(hr, "Failed to create rasterizer state.");
 
     //Create Rasterizer State for culling front
-    D3D11_RASTERIZER_DESC rasterizerDesc_CullFront;
-    ZeroMemory(&rasterizerDesc_CullFront, sizeof(D3D11_RASTERIZER_DESC));
-
-    rasterizerDesc_CullFront.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
+    CD3D11_RASTERIZER_DESC rasterizerDesc_CullFront(D3D11_DEFAULT);
+    rasterizerDesc_CullFront.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
     rasterizerDesc_CullFront.CullMode = D3D11_CULL_MODE::D3D11_CULL_FRONT;
     rasterizerDesc_CullFront.FrontCounterClockwise = FALSE;
 
     hr = this->mDevice->CreateRasterizerState(&rasterizerDesc_CullFront, this->mRasterizerState_CullFront.GetAddressOf());
 
-    if (FAILED(hr))
-    {
-        ErrorLogger::Log(hr, "Failed to create rasterizer state.");
-        return false;
-    }
+    COM_ERROR_IF_FAILED(hr, "Failed to create rasterizer state.");
 
     //Create Blend State
-    D3D11_BLEND_DESC blendDesc = {};
-    D3D11_RENDER_TARGET_BLEND_DESC rtbd = {};
+    D3D11_BLEND_DESC blendDesc = {0};
+    D3D11_RENDER_TARGET_BLEND_DESC rtbd = {0};
     rtbd.BlendEnable = true;
     rtbd.SrcBlend = D3D11_BLEND::D3D11_BLEND_SRC_ALPHA;
     rtbd.DestBlend = D3D11_BLEND::D3D11_BLEND_INV_SRC_ALPHA;
@@ -608,11 +576,7 @@ bool Graphics::CreateRasterizerState()
     blendDesc.RenderTarget[0] = rtbd;
 
     hr = mDevice->CreateBlendState(&blendDesc, mBlendState.GetAddressOf());
-    if (FAILED(hr))
-    {
-        ErrorLogger::Log(hr, "Failed to create blend state.");
-        return false;
-    }
+    COM_ERROR_IF_FAILED(hr, "Failed to create blend state.");
 
     return true;
 }
@@ -627,15 +591,10 @@ bool Graphics::InitializeFont()
 
 bool Graphics::CreateSampleState()
 {
-    D3D11_SAMPLER_DESC sampDesc;
-    ZeroMemory(&sampDesc, sizeof(sampDesc));
-    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    CD3D11_SAMPLER_DESC sampDesc(D3D11_DEFAULT);
     sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
     sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
     sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    sampDesc.MinLOD = 0;
-    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
     HRESULT hr = this->mDevice->CreateSamplerState(&sampDesc, this->mSamplerState.GetAddressOf());
 
