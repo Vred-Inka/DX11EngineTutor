@@ -79,6 +79,8 @@ void Engine::Update()
         }
     }
 
+    this->mgfx.mModel.AdjustRotation(0.0f, 0.001f * dt, 0.0f);
+
     float cameraSpeed = 0.001f;
 
     if (mKeyboard.KeyIsPressed('W'))
