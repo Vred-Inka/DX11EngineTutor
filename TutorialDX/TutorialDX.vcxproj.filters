@@ -105,6 +105,9 @@
     <ClCompile Include="Graphics\Model.cpp">
       <Filter>Resource Files\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\Mesh.cpp">
+      <Filter>Resource Files\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ErrorLogger.h">
@@ -194,6 +197,9 @@
     <ClInclude Include="Graphics\Model.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\Mesh.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="vertexshader.hlsl">
@@ -202,5 +208,8 @@
     <FxCompile Include="pixelshader.hlsl">
       <Filter>Header Files\Graphics</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

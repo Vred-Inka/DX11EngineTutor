@@ -1,15 +1,12 @@
 #pragma once
-#include "Vertex.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
-#include "ConstantBuffer.h"
+#include "Mesh.h"
 
 using namespace DirectX;
 
 class Model
 {
 public:
-    bool Initialize(ID3D11Device * device, ID3D11DeviceContext * deviceContext, ID3D11ShaderResourceView * texture, ConstantBuffer<CB_VS_vertexshader> & cb_vs_vertexshader);
+    bool Initialize(const std::string& filePath, ID3D11Device * device, ID3D11DeviceContext * deviceContext, ID3D11ShaderResourceView * texture, ConstantBuffer<CB_VS_vertexshader> & cb_vs_vertexshader);
     void SetTexture(ID3D11ShaderResourceView * texture);
     void Draw(const XMMATRIX & viewProjectionMatrix);
 
@@ -39,6 +36,11 @@ public:
     const XMVECTOR& GetBackwardVector();
 
 private:
+    std::vector<Mesh> mMeshes;
+
+    bool LoadModel(const std::string& filePath);
+    void ProcessNode(aiNode* node, const aiScene* scene);
+    Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene);
     void UpdateWorldMatrix();
 
     ID3D11Device * device = nullptr;
@@ -46,8 +48,8 @@ private:
     ConstantBuffer<CB_VS_vertexshader> * cb_vs_vertexshader = nullptr;
     ID3D11ShaderResourceView * texture = nullptr;
 
-    VertexBuffer<Vertex> vertexBuffer;
-    IndexBuffer indexBuffer;
+   // VertexBuffer<Vertex> vertexBuffer;
+   // IndexBuffer indexBuffer;
 
     XMMATRIX worldMatrix = XMMatrixIdentity();
 

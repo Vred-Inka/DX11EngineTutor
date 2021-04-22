@@ -265,7 +265,7 @@ bool Graphics::CreateConstantBuffer()
         COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
         //initialize model(s)
-        if (!mModel.Initialize(this->mDevice.Get(), this->mDeviceConext.Get(), this->mTexture.Get(), cb_vs_vertexshader))
+        if (!mModel.Initialize("Data/Objects/wolf/Wolf_One_obj.obj", this->mDevice.Get(), this->mDeviceConext.Get(), this->mTexture.Get(), cb_vs_vertexshader))
         {
             return false;
         }
@@ -285,7 +285,9 @@ bool Graphics::CreateTexture()
 {
     try
     {
-        HRESULT hr = CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Textures\\t1.jpg", nullptr, mTexture.GetAddressOf());
+        std::wstring flagTexture = L"Data\\Textures\\t1.jpg";
+        std::wstring wolfTexture = L"Data\\Objects\\wolf\\twxtures\\Wolf_Body.jpg";
+        HRESULT hr = CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Objects\\wolf\\textures\\Wolf_Body.jpg", nullptr, mTexture.GetAddressOf());
         COM_ERROR_IF_FAILED(hr, "Failed to create wic texture from file.");
 
         hr = CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Textures\\t4.jpg", nullptr, mGrassTexture.GetAddressOf());

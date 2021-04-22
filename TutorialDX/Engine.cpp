@@ -79,20 +79,20 @@ void Engine::Update()
         }
     }
 
-    this->mgfx.mModel.AdjustRotation(0.0f, 0.001f * dt, 0.0f);
+    //this->mgfx.mModel.AdjustRotation(0.0f, 0.001f * dt, 0.0f);
 
     float cameraSpeed = 0.001f;
 
     if (mKeyboard.KeyIsPressed('W'))
     {
         this->mgfx.mCamera.AdjustPosition(this->mgfx.mCamera.GetForwardVector() * cameraSpeed * dt);
-        this->mgfx.mModel.AdjustRotation(0.001f * dt, 0.0f, 0.0f);
+       // this->mgfx.mModel.AdjustRotation(0.001f * dt, 0.0f, 0.0f);
     }  
     
     if (mKeyboard.KeyIsPressed('S'))
     {
         this->mgfx.mCamera.AdjustPosition(this->mgfx.mCamera.GetBackwardVector() * cameraSpeed * dt);
-        this->mgfx.mModel.AdjustRotation( 0.0f, 0.0f, 0.001f * dt);
+       // this->mgfx.mModel.AdjustRotation( 0.0f, 0.0f, 0.001f * dt);
     }
 
     if (mKeyboard.KeyIsPressed('A'))
