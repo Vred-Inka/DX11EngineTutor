@@ -159,6 +159,7 @@
     <ClCompile Include="Graphics\AdaptorReader.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="ErrorLogger.cpp" />
+    <ClCompile Include="Graphics\GameObject.cpp" />
     <ClCompile Include="Graphics\Graphics.cpp" />
     <ClCompile Include="Graphics\ImGui\imgui.cpp" />
     <ClCompile Include="Graphics\ImGui\imgui_draw.cpp" />
@@ -187,6 +188,7 @@
     <ClInclude Include="ErrorLogger.h" />
     <ClInclude Include="Graphics\ConstantBuffer.h" />
     <ClInclude Include="Graphics\ConstantBufferType.h" />
+    <ClInclude Include="Graphics\GameObject.h" />
     <ClInclude Include="Graphics\Graphics.h" />
     <ClInclude Include="Graphics\ImGui\imconfig.h" />
     <ClInclude Include="Graphics\ImGui\imgui.h" />

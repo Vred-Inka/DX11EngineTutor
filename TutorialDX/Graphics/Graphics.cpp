@@ -45,7 +45,7 @@ void Graphics::RenderFrame()
     this->mDeviceConext->PSSetShader(mPixelShader.GetShader(), NULL, 0);
 
     {//pic       
-        this->mModel.Draw(mCamera.GetViewMatrix() * mCamera.GetProjectionMatrix());
+        this->mGameObject.Draw(mCamera.GetViewMatrix() * mCamera.GetProjectionMatrix());
     }
     
     DrawTextExemple();
@@ -265,12 +265,10 @@ bool Graphics::CreateConstantBuffer()
         COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
         //initialize model(s)
-        if (!mModel.Initialize("Data/Objects/wolf/Wolf_One_obj.obj", this->mDevice.Get(), this->mDeviceConext.Get(), this->mTexture.Get(), cb_vs_vertexshader))
+        if (!mGameObject.Initialize("Data/Objects/free/spot/spot.obj", this->mDevice.Get(), this->mDeviceConext.Get(), this->mTexture.Get(), cb_vs_vertexshader))
         {
             return false;
         }
-
-        mModel.SetPosition(2.0f, 0.0f, 0.0f);
     }
     catch (COMException& exception)
     {
@@ -287,7 +285,7 @@ bool Graphics::CreateTexture()
     {
         std::wstring flagTexture = L"Data\\Textures\\t1.jpg";
         std::wstring wolfTexture = L"Data\\Objects\\wolf\\twxtures\\Wolf_Body.jpg";
-        HRESULT hr = CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Objects\\wolf\\textures\\Wolf_Body.jpg", nullptr, mTexture.GetAddressOf());
+        HRESULT hr = CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Objects\\free\\spot\\spot\\spot_texture.png", nullptr, mTexture.GetAddressOf());
         COM_ERROR_IF_FAILED(hr, "Failed to create wic texture from file.");
 
         hr = CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Textures\\t4.jpg", nullptr, mGrassTexture.GetAddressOf());

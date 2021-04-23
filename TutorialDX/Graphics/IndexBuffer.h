@@ -12,7 +12,7 @@ private:
 
 private:
     Microsoft::WRL::ComPtr<ID3D11Buffer> mBuffer;
-    UINT mBufferSize = 0;
+    UINT mIndexCount = 0;
 
 public:
     IndexBuffer() {};
@@ -27,25 +27,25 @@ public:
         return mBuffer.GetAddressOf();
     }
 
-    UINT BufferSize() const
+    UINT IndexCount() const
     {
-        return this->mBufferSize;
+        return this->mIndexCount;
     }
 
-    HRESULT Initialize(ID3D11Device* device, DWORD* data, UINT numVertices)
+    HRESULT Initialize(ID3D11Device* device, DWORD* data, UINT indexCount)
     {
         if (mBuffer.Get() != nullptr)
         {
             mBuffer.Reset();
         }
 
-        this->mBufferSize = numVertices;
+        this->mIndexCount = indexCount;
 
         //Load Index Data
         D3D11_BUFFER_DESC indexBufferDesc;
         ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc));
         indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-        indexBufferDesc.ByteWidth = sizeof(DWORD) * numVertices;
+        indexBufferDesc.ByteWidth = sizeof(DWORD) * indexCount;
         indexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         indexBufferDesc.CPUAccessFlags = 0;
         indexBufferDesc.MiscFlags = 0;

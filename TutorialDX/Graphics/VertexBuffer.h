@@ -9,8 +9,8 @@ class VertexBuffer
 {
 private:
     Microsoft::WRL::ComPtr<ID3D11Buffer> mBuffer;
-    std::shared_ptr<UINT> mStride;
-    UINT mBufferSize = 0;
+    UINT mStride = sizeof(T); 
+    UINT mVertexCount = 0;
 
 public:
     VertexBuffer() {};
@@ -18,14 +18,14 @@ public:
     VertexBuffer(const VertexBuffer<T>& rhs)
     {
         mBuffer = rhs.mBuffer;
-        mBufferSize = rhs.mBufferSize;
+        mVertexCount = rhs.mVertexCount;
         mStride = rhs.mStride;
     }
 
     VertexBuffer<T> & operator= (const VertexBuffer<T>& rhs)
     {
         mBuffer = rhs.mBuffer;
-        mBufferSize = rhs.mBufferSize;
+        mVertexCount = rhs.mVertexCount;
         mStride = rhs.mStride;
         return *this;
     }
@@ -40,40 +40,35 @@ public:
         return mBuffer.GetAddressOf();
     }
 
-    UINT BufferSize() const
+    UINT VertexCount() const
     {
-        return this->mBufferSize;
+        return this->mVertexCount;
     }
 
     const UINT Stride() const
     {
-        return *this->mStride.get();
+        return this->mStride;
     }
 
     const UINT* StridePtr() const
     {
-        return this->mStride.get();
+        return &this->mStride;
     }
 
-    HRESULT Initialize(ID3D11Device* device, T* data, UINT numVertices)
+    HRESULT Initialize(ID3D11Device* device, T* data, UINT vertexCount)
     {
         if (this->mBuffer.Get() != nullptr)
         {
             this->mBuffer.Reset();
         }
 
-        this->mBufferSize = numVertices;
-
-        if (this->mStride.get() == nullptr)
-        {
-            this->mStride = std::make_shared<UINT>(sizeof(T));
-        }
+        this->mVertexCount = vertexCount;
 
         D3D11_BUFFER_DESC vertexBufferDesc;
         ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
 
         vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-        vertexBufferDesc.ByteWidth = sizeof(T) * numVertices;
+        vertexBufferDesc.ByteWidth = mStride * vertexCount;
         vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         vertexBufferDesc.CPUAccessFlags = 0;
         vertexBufferDesc.MiscFlags = 0;

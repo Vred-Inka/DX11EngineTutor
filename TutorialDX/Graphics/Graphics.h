@@ -10,7 +10,7 @@
 #include "ImGui/imgui_impl_win32.h"
 #include "ImGui/imgui_impl_dx11.h"
 
-#include "Model.h"
+#include "GameObject.h"
 
 class Graphics 
 {
@@ -21,7 +21,7 @@ public:
     void DrawTextExemple();
 
     Camera mCamera;
-    Model mModel;
+    GameObject mGameObject;
 
 private:
     bool InitializeDirectX(HWND hwnd);
