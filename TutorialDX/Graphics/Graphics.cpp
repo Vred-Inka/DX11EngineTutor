@@ -270,7 +270,8 @@ bool Graphics::CreateConstantBuffer()
             //"Data\\Objects\\samp\\blue_cube_notexture.fbx",
             //"Data\\Objects\\fbx\\Dragon.fbx",
             //"Data\\Objects\\free\\spot\\spot.obj",
-            "Data\\Objects\\Samples\\orange_disktexture.fbx",
+            //"Data\\Objects\\Samples\\orange_embeddedtexture.fbx",
+            "Data\\Objects\\Samples\\person_embeddedindexed.blend",
             this->mDevice.Get(), this->mDeviceConext.Get(), this->cb_vs_vertexshader))
         {
             return false;
