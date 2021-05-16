@@ -1,9 +1,9 @@
 #include "Model.h"
-bool Model::Initialize(const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext * deviceContext, ID3D11ShaderResourceView * texture, ConstantBuffer<CB_VS_vertexshader>& cb_vs_vertexshader)
+
+bool Model::Initialize(const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext * deviceContext, ConstantBuffer<CB_VS_vertexshader>& cb_vs_vertexshader)
 {
-    this->device = device;
-    this->deviceContext = deviceContext;
-    this->texture = texture;
+    this->mDevice = device;
+    this->mDeviceContext = deviceContext;
     this->cb_vs_vertexshader = &cb_vs_vertexshader;
 
     try
@@ -12,46 +12,6 @@ bool Model::Initialize(const std::string& filePath, ID3D11Device* device, ID3D11
         {
             return false;
         }
-        /*
-        {
-            //Textured Square
-            Vertex v[] =
-            {
-                Vertex(-0.5f,  -0.5f, -0.5f, 0.0f, 1.0f), //FRONT Bottom Left   - [0]
-                Vertex(-0.5f,   0.5f, -0.5f, 0.0f, 0.0f), //FRONT Top Left      - [1]
-                Vertex(0.5f,   0.5f, -0.5f, 1.0f, 0.0f), //FRONT Top Right     - [2]
-                Vertex(0.5f,  -0.5f, -0.5f, 1.0f, 1.0f), //FRONT Bottom Right   - [3]
-                Vertex(-0.5f,  -0.5f, 0.5f, 0.0f, 1.0f), //BACK Bottom Left   - [4]
-                Vertex(-0.5f,   0.5f, 0.5f, 0.0f, 0.0f), //BACK Top Left      - [5]
-                Vertex(0.5f,   0.5f, 0.5f, 1.0f, 0.0f), //BACK Top Right     - [6]
-                Vertex(0.5f,  -0.5f, 0.5f, 1.0f, 1.0f), //BACK Bottom Right   - [7]
-            };
-
-            //Load Vertex Data
-            HRESULT hr = this->vertexBuffer.Initialize(this->device, v, ARRAYSIZE(v));
-            COM_ERROR_IF_FAILED(hr, "Failed to initialize vertex buffer.");
-
-            DWORD indices[] =
-            {
-                0, 1, 2, //FRONT
-                0, 2, 3, //FRONT
-                4, 7, 6, //BACK 
-                4, 6, 5, //BACK
-                3, 2, 6, //RIGHT SIDE
-                3, 6, 7, //RIGHT SIDE
-                4, 5, 1, //LEFT SIDE
-                4, 1, 0, //LEFT SIDE
-                1, 5, 6, //TOP
-                1, 6, 2, //TOP
-                0, 3, 7, //BOTTOM
-                0, 7, 4, //BOTTOM
-            };
-
-            //Load Index Data
-            hr = this->indexBuffer.Initialize(this->device, indices, ARRAYSIZE(indices));
-            COM_ERROR_IF_FAILED(hr, "Failed to initialize index buffer.");
-        }
-        */
     }
     catch (COMException & exception)
     {
@@ -62,42 +22,32 @@ bool Model::Initialize(const std::string& filePath, ID3D11Device* device, ID3D11
     return true;
 }
 
-void Model::SetTexture(ID3D11ShaderResourceView * texture)
-{
-    this->texture = texture;
-}
-
 void Model::Draw(const XMMATRIX & worldMatrix, const XMMATRIX & viewProjectionMatrix)
 {
     //Update Constant buffer with WVP Matrix
     this->cb_vs_vertexshader->data.mat = worldMatrix * viewProjectionMatrix; //Calculate World-View-Projection Matrix
     this->cb_vs_vertexshader->data.mat = XMMatrixTranspose(this->cb_vs_vertexshader->data.mat);
     this->cb_vs_vertexshader->ApplyChanges();
-    this->deviceContext->VSSetConstantBuffers(0, 1, this->cb_vs_vertexshader->GetAddressOf());
-
-    this->deviceContext->PSSetShaderResources(0, 1, &this->texture); //Set Texture
+    this->mDeviceContext->VSSetConstantBuffers(0, 1, this->cb_vs_vertexshader->GetAddressOf());
 
     for (int i = 0; i < mMeshes.size(); i++)
     {
         mMeshes[i].Draw();
     }
-    /*this->deviceContext->IASetIndexBuffer(this->indexBuffer.Get(), DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0);
-    UINT offset = 0;
-    this->deviceContext->IASetVertexBuffers(0, 1, this->vertexBuffer.GetAddressOf(), this->vertexBuffer.StridePtr(), &offset);
-    this->deviceContext->DrawIndexed(this->indexBuffer.BufferSize(), 0, 0); //Draw
-    */
 }
 
 bool Model::LoadModel(const std::string & filePath)
 {
+    mDirectory = StringHelper::GetDirectoryFromPath(filePath);
     Assimp::Importer importer;
 
     const aiScene* pScene = importer.ReadFile(filePath,
                                                 aiProcess_Triangulate | 
                                                aiProcess_ConvertToLeftHanded);
-
+    
     if (pScene == nullptr)
     {
+        ErrorLogger::Log(importer.GetErrorString());
         return false;
     }
 
@@ -151,5 +101,113 @@ Mesh Model::ProcessMesh(aiMesh * mesh, const aiScene * scene)
         }
     }
 
-    return Mesh(this->device, this->deviceContext, vertices, indices);
+    std::vector<Texture> textures;
+    aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+    std::vector<Texture> diffuseTextures = LoadMaterialTextures(material, aiTextureType::aiTextureType_DIFFUSE, scene);
+    textures.insert(textures.end(), diffuseTextures.begin(), diffuseTextures.end());
+
+    return Mesh(this->mDevice, this->mDeviceContext, vertices, indices, textures);
+}
+
+TextureStorageType Model::DetermineTextureStorageType(const aiScene * pScene, aiMaterial * pMat, unsigned int index, aiTextureType textureType)
+{
+    if (pMat->GetTextureCount(textureType) == 0)
+    {
+        return TextureStorageType::None;
+    }
+
+    aiString path;
+    pMat->GetTexture(textureType, index, &path);
+    std::string texturePath = path.C_Str();
+
+    if (texturePath[0] == '*')
+    {
+        if (pScene->mTextures[0]->mHeight == 0)
+        {
+            return TextureStorageType::EmbeddedIndexCompressed;
+        }
+        else
+        {
+            assert("Support does not exist yet for indexed non compressed textures" && 0);
+            return TextureStorageType::EmbeddedIndexNonCompressed;
+        }
+    }
+
+    if (auto pTex = pScene->GetEmbeddedTexture(texturePath.c_str()))
+    {
+        if (pTex->mHeight == 0)
+        {
+            return TextureStorageType::EmbeddedCompressed;
+        }
+        else
+        {
+            assert("Support does not exist yet for embadded non compressed textures" && 0);
+            return TextureStorageType::EmbeddedNonCompressed;
+        }
+    }
+
+    if (texturePath.find('.') != std::string::npos)
+    {
+        return TextureStorageType::Disk;
+    }
+
+    return TextureStorageType::None;
+}
+
+std::vector<Texture> Model::LoadMaterialTextures(aiMaterial * pMaterial, aiTextureType textureType, const aiScene * pScene)
+{
+    std::vector<Texture> materialTextures;
+    TextureStorageType storageType = TextureStorageType::Invalid;
+    unsigned int textureCount = pMaterial->GetTextureCount(textureType);
+
+    if (textureCount == 0)
+    {
+        storageType = TextureStorageType::None;
+        aiColor3D aiColor(0.0f, 0.0f, 0.0f);
+
+        switch (textureType)
+        {
+        case aiTextureType_DIFFUSE:
+        {
+            pMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor);
+
+            if (aiColor.IsBlack())
+            {
+                materialTextures.push_back(Texture(this->mDevice, Colours::UnloadedTextureColor, textureType));
+                return materialTextures;
+            }
+
+            materialTextures.push_back(Texture(this->mDevice, Color(aiColor.r * 255, aiColor.g * 255, aiColor.b * 255), textureType));
+            return materialTextures;
+        }
+        }
+    }
+    else
+    {
+        for (UINT i = 0; i < textureCount; i++)
+        {
+            aiString path;
+            pMaterial->GetTexture(textureType, i, &path);
+            TextureStorageType storeType = DetermineTextureStorageType(pScene, pMaterial, i, textureType);
+
+            switch (storeType)
+            {
+            case TextureStorageType::Disk:
+            {
+                std::string fileName = this->mDirectory + '\\' + path.C_Str();
+                Texture diskTexture(this->mDevice, fileName, textureType);
+                materialTextures.push_back(diskTexture);
+                break;
+            }
+            }
+        }
+    }
+
+    if (materialTextures.size() == 0)
+    {
+        materialTextures.push_back(Texture(this->mDevice, Colours::UnhandledTextureColor, aiTextureType_DIFFUSE));
+    }
+
+    return materialTextures;
+
 }

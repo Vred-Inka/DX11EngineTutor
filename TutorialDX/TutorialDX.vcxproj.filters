@@ -45,9 +45,6 @@
     <ClCompile Include="ErrorLogger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StringConverter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="RenderWindow.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
@@ -111,12 +108,18 @@
     <ClCompile Include="Graphics\GameObject.cpp">
       <Filter>Resource Files\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\Color.cpp">
+      <Filter>Resource Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Texture.cpp">
+      <Filter>Resource Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="StringHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ErrorLogger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="StringConverter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RenderWindow.h">
@@ -206,6 +209,15 @@
     <ClInclude Include="Graphics\GameObject.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\Color.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Texture.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="StringHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="vertexshader.hlsl">
@@ -214,8 +226,5 @@
     <FxCompile Include="pixelshader.hlsl">
       <Filter>Header Files\Graphics</Filter>
     </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
 </Project>

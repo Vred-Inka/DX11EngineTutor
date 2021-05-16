@@ -68,7 +68,7 @@ void Graphics::DrawTextExemple()
         mFSTimer.Restart();
     }
     mSpriteBatch->Begin();
-    mSpriteFont->DrawString(mSpriteBatch.get(), StringConverter::StringToWide(fpsString).c_str(), XMFLOAT2(0, 0), Colors::White, 0.0f, XMFLOAT2(0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f));
+    mSpriteFont->DrawString(mSpriteBatch.get(), StringHelper::StringToWide(fpsString).c_str(), XMFLOAT2(0, 0), Colors::White, 0.0f, XMFLOAT2(0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f));
     mSpriteBatch->End();
 }
 
@@ -265,7 +265,13 @@ bool Graphics::CreateConstantBuffer()
         COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
         //initialize model(s)
-        if (!mGameObject.Initialize("Data/Objects/free/spot/spot.obj", this->mDevice.Get(), this->mDeviceConext.Get(), this->mTexture.Get(), cb_vs_vertexshader))
+      
+        if (!mGameObject.Initialize(
+            //"Data\\Objects\\samp\\blue_cube_notexture.fbx",
+            //"Data\\Objects\\fbx\\Dragon.fbx",
+            //"Data\\Objects\\free\\spot\\spot.obj",
+            "Data\\Objects\\Samples\\orange_disktexture.fbx",
+            this->mDevice.Get(), this->mDeviceConext.Get(), this->cb_vs_vertexshader))
         {
             return false;
         }
