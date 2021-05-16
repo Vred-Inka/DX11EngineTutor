@@ -220,7 +220,7 @@ bool Graphics::InitializeScene()
         }
 
         mCamera.SetPosition(0.0f, 0.0f, -2.0f);
-        mCamera.SetProjectionValues(90.0f, static_cast<float>(mWindowWidth) / static_cast<float>(mWindowHeight), 0.1f, 1000.0f);
+        mCamera.SetProjectionValues(90.0f, static_cast<float>(mWindowWidth) / static_cast<float>(mWindowHeight), 0.1f, 3000.0f);
     }
     catch (COMException& exception)
     {
@@ -271,7 +271,8 @@ bool Graphics::CreateConstantBuffer()
             //"Data\\Objects\\fbx\\Dragon.fbx",
             //"Data\\Objects\\free\\spot\\spot.obj",
             //"Data\\Objects\\Samples\\orange_embeddedtexture.fbx",
-            "Data\\Objects\\Samples\\person_embeddedindexed.blend",
+            //"Data\\Objects\\Samples\\person_embeddedindexed.blend",
+            "Data\\Objects\\Samples\\dodge_challenger.fbx",
             this->mDevice.Get(), this->mDeviceConext.Get(), this->cb_vs_vertexshader))
         {
             return false;

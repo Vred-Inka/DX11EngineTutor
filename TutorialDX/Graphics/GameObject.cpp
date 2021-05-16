@@ -1,35 +1,5 @@
 #include "GameObject.h"
 
-bool GameObject::Initialize(const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext * deviceContext, ConstantBuffer<CB_VS_vertexshader>& cb_vs_vertexshader)
-{
-    if (!mModel.Initialize(filePath, device, deviceContext, cb_vs_vertexshader))
-    {
-        return false;
-    }
-
-    this->SetPosition(0.0f, 0.0f, 0.0f);
-    this->SetRotation(0.0f, 0.0f, 0.0f);
-    this->UpdateWorldMatrix();
-
-    return true;
-}
-
-void GameObject::Draw(const XMMATRIX & viewProjectionMatrix)
-{
-    mModel.Draw(this->mWorldMatrix, viewProjectionMatrix);
-}
-
-void GameObject::UpdateWorldMatrix()
-{
-    this->mWorldMatrix = XMMatrixRotationRollPitchYaw(mRot.x, mRot.y, mRot.z) * XMMatrixTranslation(mPos.x, mPos.y, mPos.z);
-
-    XMMATRIX vecRotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, this->mRot.y, 0.0f);
-    this->vec_forward = XMVector3TransformCoord(this->DEFAULT_FORWARD_VECTOR, vecRotationMatrix);
-    this->vec_backward = XMVector3TransformCoord(this->DEFAULT_BACKWARD_VECTOR, vecRotationMatrix);
-    this->vec_left = XMVector3TransformCoord(this->DEFAULT_LEFT_VECTOR, vecRotationMatrix);
-    this->vec_right = XMVector3TransformCoord(this->DEFAULT_RIGHT_VECTOR, vecRotationMatrix);
-}
-
 const XMVECTOR & GameObject::GetPositionVector() const
 {
     return this->mPosVector;
@@ -54,28 +24,28 @@ void GameObject::SetPosition(const XMVECTOR & pos)
 {
     XMStoreFloat3(&this->mPos, pos);
     this->mPosVector = pos;
-    UpdateWorldMatrix();
+    UpdateMatrix();
 }
 
 void GameObject::SetPosition(const XMFLOAT3 & pos)
 {
     this->mPos = pos;
     this->mPosVector = XMLoadFloat3(&this->mPos);
-    UpdateWorldMatrix();
+    UpdateMatrix();
 }
 
 void GameObject::SetPosition(float x, float y, float z)
 {
     this->mPos = XMFLOAT3(x, y, z);
     this->mPosVector = XMLoadFloat3(&this->mPos);
-    UpdateWorldMatrix();
+    UpdateMatrix();
 }
 
 void GameObject::AdjustPosition(const XMVECTOR & pos)
 {
     this->mPosVector += pos;
     XMStoreFloat3(&this->mPos, this->mPosVector);
-    UpdateWorldMatrix();
+    UpdateMatrix();
 }
 
 void GameObject::AdjustPosition(const XMFLOAT3 & pos)
@@ -84,7 +54,7 @@ void GameObject::AdjustPosition(const XMFLOAT3 & pos)
     this->mPos.y += pos.y;
     this->mPos.z += pos.z;
     this->mPosVector = XMLoadFloat3(&this->mPos);
-    UpdateWorldMatrix();
+    UpdateMatrix();
 }
 
 void GameObject::AdjustPosition(float x, float y, float z)
@@ -93,35 +63,35 @@ void GameObject::AdjustPosition(float x, float y, float z)
     this->mPos.y += y;
     this->mPos.z += z;
     this->mPosVector = XMLoadFloat3(&this->mPos);
-    UpdateWorldMatrix();
+    UpdateMatrix();
 }
 
 void GameObject::SetRotation(const XMVECTOR & rot)
 {
     XMStoreFloat3(&this->mRot, rot);
     this->mRotVector = rot;
-    UpdateWorldMatrix();
+    UpdateMatrix();
 }
 
 void GameObject::SetRotation(const XMFLOAT3 & rot)
 {
     this->mRot = rot;
     this->mRotVector = XMLoadFloat3(&this->mRot);
-    UpdateWorldMatrix();
+    UpdateMatrix();
 }
 
 void GameObject::SetRotation(float x, float y, float z)
 {
     this->mRot = XMFLOAT3(x, y, z);
     this->mRotVector = XMLoadFloat3(&this->mRot);
-    UpdateWorldMatrix();
+    UpdateMatrix();
 }
 
 void GameObject::AdjustRotation(const XMVECTOR & rot)
 {
     this->mRotVector += rot;
     XMStoreFloat3(&this->mRot, this->mRotVector);
-    UpdateWorldMatrix();
+    UpdateMatrix();
 }
 
 void GameObject::AdjustRotation(const XMFLOAT3 & rot)
@@ -130,7 +100,7 @@ void GameObject::AdjustRotation(const XMFLOAT3 & rot)
     this->mRot.y += rot.y;
     this->mRot.z += rot.z;
     this->mRotVector = XMLoadFloat3(&this->mRot);
-    UpdateWorldMatrix();
+    UpdateMatrix();
 }
 
 void GameObject::AdjustRotation(float x, float y, float z)
@@ -139,7 +109,7 @@ void GameObject::AdjustRotation(float x, float y, float z)
     this->mRot.y += y;
     this->mRot.z += z;
     this->mRotVector = XMLoadFloat3(&this->mRot);
-    UpdateWorldMatrix();
+    UpdateMatrix();
 }
 
 void GameObject::SetLookAtPos(XMFLOAT3 lookAtPos)
@@ -192,4 +162,9 @@ const XMVECTOR & GameObject::GetLeftVector()
 const XMVECTOR & GameObject::GetBackwardVector()
 {
     return this->vec_backward;
+}
+
+void GameObject::UpdateMatrix()
+{
+    assert("UpdateMatrix must be overridden." && 0);
 }
