@@ -51,7 +51,7 @@ private:
     VertexShader mVertexShader;
     PixelShader mPixelShader;
     ConstantBuffer<CB_VS_vertexshader> cb_vs_vertexshader;
-    ConstantBuffer<CB_PS_pixelshader> cb_ps_pixelshader;
+    ConstantBuffer<CB_PS_light> cb_ps_light;
 
     ConstantBuffer<CB_VS_vertexshader> mConstantBuffer;
 

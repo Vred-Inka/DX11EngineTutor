@@ -119,6 +119,15 @@ void Engine::Update()
     {
         this->mgfx.mCamera.AdjustPosition(0.0f, -cameraSpeed * dt, 0.0f);
     }
+
+    if (mKeyboard.KeyIsPressed(VK_DOWN))
+    {
+       // this->mgfx.mGameObject.AdjustPosition(0.0f, -cameraSpeed * dt, 0.0f);
+    }
+    if (mKeyboard.KeyIsPressed(VK_UP))
+    {
+       // this->mgfx.mGameObject.AdjustPosition(1000, 0.0f, 0.0f);
+    }
 }
 
 void Engine::RenderFrame()

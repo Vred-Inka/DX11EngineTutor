@@ -31,6 +31,10 @@ void Graphics::RenderFrame()
 {
     static float translationOffset[3] = { 0, 0, 4.0f };
     static float alpha = 0.5f;
+
+    this->cb_ps_light.ApplyChanges();
+    this->mDeviceConext->PSSetConstantBuffers(0, 1, this->cb_ps_light.GetAddressOf());
+
     float bgcolor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
     this->mDeviceConext->ClearRenderTargetView(this->mRenderTargetView.Get(), bgcolor);
     this->mDeviceConext->ClearDepthStencilView(this->mDepthStencilView.Get(), D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
@@ -79,8 +83,10 @@ void Graphics::RenderImGuiFrame(float(&transtalionOffeset)[3], float& alpha)
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
     //create ImGui Test Window
-    ImGui::Begin("Test");
+    ImGui::Begin("Light Controls");
     ImGui::Text("...");
+    ImGui::DragFloat3("Ambient Light Color", &this->cb_ps_light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
+    ImGui::DragFloat("Ambient Light Strength", &this->cb_ps_light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
    /* if (ImGui::Button("CLick Me"))
     {
         counter += 1;
@@ -219,7 +225,7 @@ bool Graphics::InitializeScene()
             return false;
         }
 
-        mCamera.SetPosition(0.0f, 0.0f, -2.0f);
+        mCamera.SetPosition(0.0f, 0.0f, 0.0f);
         mCamera.SetProjectionValues(90.0f, static_cast<float>(mWindowWidth) / static_cast<float>(mWindowHeight), 0.1f, 3000.0f);
     }
     catch (COMException& exception)
@@ -261,10 +267,11 @@ bool Graphics::CreateConstantBuffer()
 
         COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
-        hr = cb_ps_pixelshader.Initialize(this->mDevice.Get(), this->mDeviceConext.Get());
+        hr = cb_ps_light.Initialize(this->mDevice.Get(), this->mDeviceConext.Get());
         COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
-        //initialize model(s)
+        this->cb_ps_light.data.ambientLightColor = XMFLOAT3(1.0f, 1.0f, 1.0f);
+        this->cb_ps_light.data.ambientLightStrength = 1.0f;
       
         if (!mGameObject.Initialize(
             //"Data\\Objects\\samp\\blue_cube_notexture.fbx",
