@@ -182,7 +182,8 @@ bool Graphics::InitializeShaders()
     D3D11_INPUT_ELEMENT_DESC layout[] =
     { 
         {"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        {"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 }
+        {"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        {"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
     UINT numElements = ARRAYSIZE(layout);
@@ -276,10 +277,11 @@ bool Graphics::CreateConstantBuffer()
         if (!mGameObject.Initialize(
             //"Data\\Objects\\samp\\blue_cube_notexture.fbx",
             //"Data\\Objects\\fbx\\Dragon.fbx",
+            "Data\\Objects\\nanosuit\\nanosuit.blend",
             //"Data\\Objects\\free\\spot\\spot.obj",
             //"Data\\Objects\\Samples\\orange_embeddedtexture.fbx",
             //"Data\\Objects\\Samples\\person_embeddedindexed.blend",
-            "Data\\Objects\\Samples\\dodge_challenger.fbx",
+            //"Data\\Objects\\Samples\\dodge_challenger.fbx",
             this->mDevice.Get(), this->mDeviceConext.Get(), this->cb_vs_vertexshader))
         {
             return false;
@@ -430,16 +432,15 @@ bool Graphics::CreateRasterizerState()
 
     //Create Rasterizer State for culling front
     CD3D11_RASTERIZER_DESC rasterizerDesc_CullFront(D3D11_DEFAULT);
-    rasterizerDesc_CullFront.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
+   // rasterizerDesc_CullFront.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
     rasterizerDesc_CullFront.CullMode = D3D11_CULL_MODE::D3D11_CULL_FRONT;
-    rasterizerDesc_CullFront.FrontCounterClockwise = FALSE;
+   // rasterizerDesc_CullFront.FrontCounterClockwise = FALSE;
 
     hr = this->mDevice->CreateRasterizerState(&rasterizerDesc_CullFront, this->mRasterizerState_CullFront.GetAddressOf());
 
     COM_ERROR_IF_FAILED(hr, "Failed to create rasterizer state.");
 
-    //Create Blend State
-    D3D11_BLEND_DESC blendDesc = {0};
+    //Create Blend State    
     D3D11_RENDER_TARGET_BLEND_DESC rtbd = {0};
     rtbd.BlendEnable = true;
     rtbd.SrcBlend = D3D11_BLEND::D3D11_BLEND_SRC_ALPHA;
@@ -450,6 +451,7 @@ bool Graphics::CreateRasterizerState()
     rtbd.BlendOpAlpha = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;
     rtbd.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE::D3D11_COLOR_WRITE_ENABLE_ALL;
 
+    D3D11_BLEND_DESC blendDesc = { 0 };
     blendDesc.RenderTarget[0] = rtbd;
 
     hr = mDevice->CreateBlendState(&blendDesc, mBlendState.GetAddressOf());

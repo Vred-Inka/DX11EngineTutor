@@ -28,8 +28,8 @@ void Model::Draw(const XMMATRIX & worldMatrix, const XMMATRIX & viewProjectionMa
 
     for (int i = 0; i < mMeshes.size(); i++)
     {
-        this->cb_vs_vertexshader->data.mat = mMeshes[i].GetTransformMatrix() * viewProjectionMatrix; //Calculate World-View-Projection Matrix
-        this->cb_vs_vertexshader->data.mat = XMMatrixTranspose(this->cb_vs_vertexshader->data.mat);
+        this->cb_vs_vertexshader->data.wvpMatrix = mMeshes[i].GetTransformMatrix() * viewProjectionMatrix * worldMatrix; //Calculate World-View-Projection Matrix
+        this->cb_vs_vertexshader->data.worldMatrix = mMeshes[i].GetTransformMatrix() * worldMatrix; 
         this->cb_vs_vertexshader->ApplyChanges();
         mMeshes[i].Draw();
     }
@@ -70,6 +70,18 @@ void Model::ProcessNode(aiNode* node, const aiScene * scene, const XMMATRIX& par
     }
 }
 
+DirectX::XMMATRIX InverseTranspose(DirectX::CXMMATRIX M) {
+
+    DirectX::XMMATRIX A = M;
+
+    A.r[3] = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+
+    DirectX::XMVECTOR det = XMMatrixDeterminant(A);
+
+    return XMMatrixTranspose(XMMatrixInverse(&det, A));;
+
+}
+
 Mesh Model::ProcessMesh(aiMesh * mesh, const aiScene * scene, const XMMATRIX& transformMatrix)
 {
     std::vector<Vertex> vertices;
@@ -82,10 +94,17 @@ Mesh Model::ProcessMesh(aiMesh * mesh, const aiScene * scene, const XMMATRIX& tr
         vertex.mPos.y = mesh->mVertices[i].y;
         vertex.mPos.z = mesh->mVertices[i].z;
 
+        if (mesh->mNormals != nullptr)
+        {
+            vertex.mNormal.x = mesh->mNormals[i].x;
+            vertex.mNormal.y = mesh->mNormals[i].y;
+            vertex.mNormal.z = mesh->mNormals[i].z;
+        }
+
         if (mesh->mTextureCoords[0])
         {
-            vertex.texCoord.x = (float)mesh->mTextureCoords[0][i].x;
-            vertex.texCoord.y = (float)mesh->mTextureCoords[0][i].y;
+            vertex.mTexCoord.x = (float)mesh->mTextureCoords[0][i].x;
+            vertex.mTexCoord.y = (float)mesh->mTextureCoords[0][i].y;
         }
 
         vertices.push_back(vertex);

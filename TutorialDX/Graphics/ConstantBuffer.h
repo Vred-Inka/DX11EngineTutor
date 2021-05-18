@@ -1,7 +1,7 @@
 #ifndef ConstantBuffer_h_
 #define ConstantBuffer_h_
 #include <d3d11.h>
-#include "ConstantBufferType.h"
+#include "ConstantBufferTypes.h"
 #include <wrl/client.h>
 #include "../ErrorLogger.h"
 

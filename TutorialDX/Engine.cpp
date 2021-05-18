@@ -79,7 +79,7 @@ void Engine::Update()
         }
     }
 
-    //this->mgfx.mGameObject.AdjustRotation(0.0f, 0.001f * dt, 0.0f);
+   // this->mgfx.mGameObject.AdjustRotation( 0.0f,  0.001f * dt, 0.0f);
 
     float cameraSpeed = 0.006f;
 
