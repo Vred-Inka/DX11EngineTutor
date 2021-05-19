@@ -11,6 +11,7 @@
 #include "ImGui/imgui_impl_dx11.h"
 
 #include "RenderableGameObject.h"
+#include "Light.h"
 
 class Graphics 
 {
@@ -22,6 +23,7 @@ public:
 
     Camera mCamera;
     RenderableGameObject mGameObject;
+    Light mLight;
 
 private:
     bool InitializeDirectX(HWND hwnd);
@@ -44,12 +46,13 @@ private:
     bool CreateSampleState();
 
     Microsoft::WRL::ComPtr<ID3D11Device> mDevice;
-    Microsoft::WRL::ComPtr<ID3D11DeviceContext> mDeviceConext;
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext> mDeviceContext;
     Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mRenderTargetView;
 
     VertexShader mVertexShader;
     PixelShader mPixelShader;
+    PixelShader mPixelShader_nolight;
     ConstantBuffer<CB_VS_vertexshader> cb_vs_vertexshader;
     ConstantBuffer<CB_PS_light> cb_ps_light;
 
@@ -76,5 +79,5 @@ private:
     int mWindowWidth = 0;
     int mWindowHeight = 0;
 
-    Timer mFSTimer;
+    Timer mFPSTimer;
 };

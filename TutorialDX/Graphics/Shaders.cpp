@@ -47,7 +47,7 @@ ID3D11InputLayout * VertexShader::GetInputLayout()
     return this->mInputLayout.Get();
 }
 
-bool PixelShader::Initialize(Microsoft::WRL::ComPtr<ID3D11Device>& device, std::wstring shaderpath, D3D11_INPUT_ELEMENT_DESC* layoutDesc, UINT numElements)
+bool PixelShader::Initialize(Microsoft::WRL::ComPtr<ID3D11Device>& device, std::wstring shaderpath)
 {
     HRESULT hr = D3DReadFileToBlob(shaderpath.c_str(), this->mShaderBuffer.GetAddressOf());
     if (FAILED(hr))

@@ -79,7 +79,7 @@ void Engine::Update()
         }
     }
 
-   // this->mgfx.mGameObject.AdjustRotation( 0.0f,  0.001f * dt, 0.0f);
+    //this->mgfx.mGameObject.AdjustRotation(0.0f, 0.001f*dt, 0.0f);
 
     float cameraSpeed = 0.006f;
 
@@ -91,42 +91,34 @@ void Engine::Update()
     if (mKeyboard.KeyIsPressed('W'))
     {
         this->mgfx.mCamera.AdjustPosition(this->mgfx.mCamera.GetForwardVector() * cameraSpeed * dt);
-       // this->mgfx.mModel.AdjustRotation(0.001f * dt, 0.0f, 0.0f);
-    }  
-    
+    }
     if (mKeyboard.KeyIsPressed('S'))
     {
         this->mgfx.mCamera.AdjustPosition(this->mgfx.mCamera.GetBackwardVector() * cameraSpeed * dt);
-       // this->mgfx.mModel.AdjustRotation( 0.0f, 0.0f, 0.001f * dt);
     }
-
     if (mKeyboard.KeyIsPressed('A'))
     {
         this->mgfx.mCamera.AdjustPosition(this->mgfx.mCamera.GetLeftVector() * cameraSpeed * dt);
     }
-
     if (mKeyboard.KeyIsPressed('D'))
     {
         this->mgfx.mCamera.AdjustPosition(this->mgfx.mCamera.GetRightVector() * cameraSpeed * dt);
     }
-
     if (mKeyboard.KeyIsPressed(VK_SPACE))
     {
         this->mgfx.mCamera.AdjustPosition(0.0f, cameraSpeed * dt, 0.0f);
     }
-
     if (mKeyboard.KeyIsPressed('Z'))
     {
         this->mgfx.mCamera.AdjustPosition(0.0f, -cameraSpeed * dt, 0.0f);
     }
 
-    if (mKeyboard.KeyIsPressed(VK_DOWN))
+    if (mKeyboard.KeyIsPressed('C'))
     {
-       // this->mgfx.mGameObject.AdjustPosition(0.0f, -cameraSpeed * dt, 0.0f);
-    }
-    if (mKeyboard.KeyIsPressed(VK_UP))
-    {
-       // this->mgfx.mGameObject.AdjustPosition(1000, 0.0f, 0.0f);
+        XMVECTOR lightPosition = this->mgfx.mCamera.GetPositionVector();
+        lightPosition += this->mgfx.mCamera.GetForwardVector();
+        this->mgfx.mLight.SetPosition(lightPosition);
+        this->mgfx.mLight.SetRotation(this->mgfx.mCamera.GetRotationFloat3());
     }
 }
 
