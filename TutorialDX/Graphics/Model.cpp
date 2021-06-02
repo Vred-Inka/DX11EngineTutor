@@ -28,7 +28,7 @@ void Model::Draw(const XMMATRIX & worldMatrix, const XMMATRIX & viewProjectionMa
 
     for (int i = 0; i < mMeshes.size(); i++)
     {
-        this->cb_vs_vertexshader->data.wvpMatrix = mMeshes[i].GetTransformMatrix() * viewProjectionMatrix * worldMatrix; //Calculate World-View-Projection Matrix
+        this->cb_vs_vertexshader->data.wvpMatrix = mMeshes[i].GetTransformMatrix()  * worldMatrix * viewProjectionMatrix ; //Calculate World-View-Projection Matrix
         this->cb_vs_vertexshader->data.worldMatrix = mMeshes[i].GetTransformMatrix() * worldMatrix; 
         this->cb_vs_vertexshader->ApplyChanges();
         mMeshes[i].Draw();
@@ -84,12 +84,12 @@ DirectX::XMMATRIX InverseTranspose(DirectX::CXMMATRIX M) {
 
 Mesh Model::ProcessMesh(aiMesh * mesh, const aiScene * scene, const XMMATRIX& transformMatrix)
 {
-    std::vector<Vertex> vertices;
+    std::vector<Vertex3D> vertices;
     std::vector<DWORD> indices;
 
     for (UINT i = 0; i < mesh->mNumVertices; i++)
     {
-        Vertex vertex;
+        Vertex3D vertex;
         vertex.mPos.x = mesh->mVertices[i].x;
         vertex.mPos.y = mesh->mVertices[i].y;
         vertex.mPos.z = mesh->mVertices[i].z;

@@ -4,7 +4,7 @@
 #include <SpriteBatch.h>
 #include <SpriteFont.h>
 #include <WICTextureLoader.h>
-#include "Camera.h"
+#include "Camera3D.h"
 #include "../Timer.h"
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_win32.h"
@@ -12,6 +12,8 @@
 
 #include "RenderableGameObject.h"
 #include "Light.h"
+#include "Camera2D.h"
+#include "Sprite.h"
 
 class Graphics 
 {
@@ -21,7 +23,9 @@ public:
     void RenderImGuiFrame(float (&transtalionOffeset)[3], float& alpha);
     void DrawTextExemple();
 
-    Camera mCamera;
+    Camera3D mCamera3D;
+    Camera2D mCamera2D;
+    Sprite mSprite;
     RenderableGameObject mGameObject;
     Light mLight;
 
@@ -50,9 +54,12 @@ private:
     Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mRenderTargetView;
 
+    VertexShader mVertexShader_2d;
     VertexShader mVertexShader;
+    PixelShader mPixelShader_2d;
     PixelShader mPixelShader;
     PixelShader mPixelShader_nolight;
+    ConstantBuffer<CB_VS_vertexshader_2d> cb_vs_vertexshader_2d;
     ConstantBuffer<CB_VS_vertexshader> cb_vs_vertexshader;
     ConstantBuffer<CB_PS_light> cb_ps_light;
 

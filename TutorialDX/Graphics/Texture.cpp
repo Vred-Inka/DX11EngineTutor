@@ -66,9 +66,9 @@ void Texture::Initialize1x1Colortexture(ID3D11Device * device, const Color & col
 
 void Texture::InitializeColortexture(ID3D11Device * device, const Color * colorData, UINT width, UINT height, aiTextureType type)
 {
-    this->mType = type;
+    mType = type;
     CD3D11_TEXTURE2D_DESC textureDesc(DXGI_FORMAT_R8G8B8A8_UNORM, width, height);
-    ID3D11Texture2D* p2DTexture = nullptr;
+    ID3D11Texture2D * p2DTexture = nullptr;
     D3D11_SUBRESOURCE_DATA initialData{};
     initialData.pSysMem = colorData;
     initialData.SysMemPitch = width * sizeof(Color);
@@ -77,5 +77,5 @@ void Texture::InitializeColortexture(ID3D11Device * device, const Color * colorD
     mTexture = static_cast<ID3D11Texture2D*>(p2DTexture);
     CD3D11_SHADER_RESOURCE_VIEW_DESC srvDesc(D3D11_SRV_DIMENSION_TEXTURE2D, textureDesc.Format);
     hr = device->CreateShaderResourceView(mTexture.Get(), &srvDesc, mTextureView.GetAddressOf());
-    COM_ERROR_IF_FAILED(hr, "Failed to create shader resource view from texture generated from color.");
+    COM_ERROR_IF_FAILED(hr, "Failed to create shader resource view from texture generated from color data.");
 }

@@ -31,54 +31,54 @@ void Graphics::RenderFrame()
 {
     static float translationOffset[3] = { 0, 0, 0.0f };
     static float rotationOffset[3] = { 0, 0, 0.0f };
-    this->cb_ps_light.data.dynamicLightColor = mLight.mLightColor;
-    this->cb_ps_light.data.dynamicLightStrength = mLight.mLightStrength;
-    this->cb_ps_light.data.dynamicLightPosition = mCamera.GetPositionFloat3();
-   // this->cb_ps_light.data.mDynamicLightAttenuation_a = mLight.mAttenuation_a;
-  //  this->cb_ps_light.data.mDynamicLightAttenuation_b = mLight.mAttenuation_b;
-  //  this->cb_ps_light.data.mDynamicLightAttenuation_c = mLight.mAttenuation_c;
-    this->cb_ps_light.ApplyChanges();
-    this->mDeviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_light.GetAddressOf());
+    cb_ps_light.data.dynamicLightColor = mLight.mLightColor;
+    cb_ps_light.data.dynamicLightStrength = mLight.mLightStrength;
+    cb_ps_light.data.dynamicLightPosition = mCamera3D.GetPositionFloat3();
+   // cb_ps_light.data.mDynamicLightAttenuation_a = mLight.mAttenuation_a;
+  //  cb_ps_light.data.mDynamicLightAttenuation_b = mLight.mAttenuation_b;
+  //  cb_ps_light.data.mDynamicLightAttenuation_c = mLight.mAttenuation_c;
+    cb_ps_light.ApplyChanges();
+    mDeviceContext->PSSetConstantBuffers(0, 1, cb_ps_light.GetAddressOf());
 
     float bgcolor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-    this->mDeviceContext->ClearRenderTargetView(this->mRenderTargetView.Get(), bgcolor);
-    this->mDeviceContext->ClearDepthStencilView(this->mDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    mDeviceContext->ClearRenderTargetView(mRenderTargetView.Get(), bgcolor);
+    mDeviceContext->ClearDepthStencilView(mDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-    this->mDeviceContext->IASetInputLayout(this->mVertexShader.GetInputLayout());
-    this->mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    this->mDeviceContext->RSSetState(this->mRasterizerState.Get());
-    this->mDeviceContext->OMSetDepthStencilState(this->mDepthStencilState.Get(), 0);
-    this->mDeviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
-    this->mDeviceContext->PSSetSamplers(0, 1, this->mSamplerState.GetAddressOf());
-    this->mDeviceContext->VSSetShader(mVertexShader.GetShader(), NULL, 0);
-    this->mDeviceContext->PSSetShader(mPixelShader.GetShader(), NULL, 0);
+    mDeviceContext->IASetInputLayout(mVertexShader.GetInputLayout());
+    mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    mDeviceContext->RSSetState(mRasterizerState.Get());
+    mDeviceContext->OMSetDepthStencilState(mDepthStencilState.Get(), 0);
+    mDeviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
+    mDeviceContext->PSSetSamplers(0, 1, mSamplerState.GetAddressOf());
+    mDeviceContext->VSSetShader(mVertexShader.GetShader(), NULL, 0);
+    mDeviceContext->PSSetShader(mPixelShader.GetShader(), NULL, 0);
+
+    XMFLOAT3 cameraPos = mCamera3D.GetPositionFloat3();
+    XMFLOAT3 cameraRot = mCamera3D.GetRotationFloat3();
+    static float cameraPosition[3] = { cameraPos.x, cameraPos.y, cameraPos.z };
+    static float cameraRotation[3] = { cameraRot.x, cameraRot.y, cameraRot.z };
 
     {
-        this->mLight.SetPosition(translationOffset[0], translationOffset[1], translationOffset[2]);
-        this->mLight.SetRotation(rotationOffset[0], rotationOffset[1], rotationOffset[2]);
-        this->mGameObject.Draw(mCamera.GetViewMatrix() * mCamera.GetProjectionMatrix());
+        mLight.SetPosition(translationOffset[0], translationOffset[1], translationOffset[2]);
+        mLight.SetRotation(rotationOffset[0], rotationOffset[1], rotationOffset[2]);
+
+        //mCamera.SetPosition(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
+       // mCamera.SetRotation(cameraRotation[0], cameraRotation[1], cameraRotation[2]);
+
+        mGameObject.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
 
     }
     {
-        //this->mDeviceContext->PSSetShader(mPixelShader_nolight.GetShader(), NULL, 0);
-        this->mLight.Draw(mCamera.GetViewMatrix() * mCamera.GetProjectionMatrix());
+        mDeviceContext->PSSetShader(mPixelShader_nolight.GetShader(), NULL, 0);
+        mLight.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
     }
 
-    //Draw Text
-    static int fpsCounter = 0;
-    static std::string fpsString = "FPS: 0";
-    fpsCounter += 1;
-    if (mFPSTimer.GetMilisecondsElapsed() > 1000.0)
-    {
-        fpsString = "FPS: " + std::to_string(fpsCounter);
-        fpsCounter = 0;
-        mFPSTimer.Restart();
-    }
-    mSpriteBatch->Begin();
-    mSpriteFont->DrawString(mSpriteBatch.get(), StringHelper::StringToWide(fpsString).c_str(), DirectX::XMFLOAT2(0, 0), DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
-    mSpriteBatch->End();
+    mDeviceContext->IASetInputLayout(mVertexShader_2d.GetInputLayout());
+    mDeviceContext->PSSetShader(mPixelShader_2d.GetShader(), NULL, 0);
+    mDeviceContext->VSSetShader(mVertexShader_2d.GetShader(), NULL, 0);
+    mSprite.Draw(mCamera2D.GetWorldMatrix() * mCamera2D.GetOrthoMatrix());
 
-
+    DrawTextExemple();
 
     static int counter = 0;
     // Start the Dear ImGui frame
@@ -87,24 +87,32 @@ void Graphics::RenderFrame()
     ImGui::NewFrame();
     //Create ImGui Test Window
     ImGui::Begin("Light Controls");
-    ImGui::DragFloat3("Ambient Light Color", &this->cb_ps_light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
-    ImGui::DragFloat("Ambient Light Strength", &this->cb_ps_light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
+    ImGui::DragFloat3("Ambient Light Color", &cb_ps_light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
+    ImGui::DragFloat("Ambient Light Strength", &cb_ps_light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
+    ImGui::Separator();
+    ImGui::DragFloat3("Denamic Light Color", &cb_ps_light.data.dynamicLightColor.x, 0.01f, 0.0f, 1.0f);
+    ImGui::DragFloat("Dinamic Light Strength", &cb_ps_light.data.dynamicLightStrength, 0.01f, 0.0f, 1.0f);
     ImGui::End();
     ImGui::Begin("Light position Controls");
     ImGui::DragFloat3("translation offset", translationOffset, 0.01f, -5.0f, 5.0f);
     ImGui::DragFloat3("rotation offset", rotationOffset, 0.01f, -5.0f, 5.0f);
     ImGui::End();
     ImGui::Begin("Attenuation Controls");
-    ImGui::DragFloat("Dynamic light Attenuation a", &this->cb_ps_light.data.mDynamicLightAttenuation_a, 0.01f, 0.1f, 10.0f);
-    ImGui::DragFloat("Dynamic light Attenuation b", &this->cb_ps_light.data.mDynamicLightAttenuation_b, 0.01f, 0.0f, 10.0f);
-    ImGui::DragFloat("Dynamic light Attenuation c", &this->cb_ps_light.data.mDynamicLightAttenuation_c, 0.01f, 0.0f, 10.0f);
+    ImGui::DragFloat("Dynamic light Attenuation a", &cb_ps_light.data.mDynamicLightAttenuation_a, 0.01f, 0.1f, 10.0f);
+    ImGui::DragFloat("Dynamic light Attenuation b", &cb_ps_light.data.mDynamicLightAttenuation_b, 0.01f, 0.0f, 10.0f);
+    ImGui::DragFloat("Dynamic light Attenuation c", &cb_ps_light.data.mDynamicLightAttenuation_c, 0.01f, 0.0f, 10.0f);
+    ImGui::End();
+
+    ImGui::Begin("Camera Controls");
+    ImGui::DragFloat3("position", cameraPosition, 0.01f, -5.0f, 5.0f);
+    ImGui::DragFloat3("rotation", cameraRotation, 0.01f, -5.0f, 5.0f);
     ImGui::End();
     //Assemble Together Draw Data
     ImGui::Render();
     //Render Draw Data
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-    this->mSwapChain->Present(0, NULL);
+    mSwapChain->Present(0, NULL);
 }
 
 void Graphics::DrawTextExemple()
@@ -122,34 +130,6 @@ void Graphics::DrawTextExemple()
     mSpriteBatch->Begin();
     mSpriteFont->DrawString(mSpriteBatch.get(), StringHelper::StringToWide(fpsString).c_str(), XMFLOAT2(0, 0), Colors::White, 0.0f, XMFLOAT2(0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f));
     mSpriteBatch->End();
-}
-
-void Graphics::RenderImGuiFrame(float(&transtalionOffeset)[3], float& alpha)
-{
-    static int counter = 0;
-    ImGui_ImplDX11_NewFrame();
-    ImGui_ImplWin32_NewFrame();
-    ImGui::NewFrame();
-    //create ImGui Test Window
-    ImGui::Begin("Light Controls");
-    ImGui::Text("...");
-    ImGui::DragFloat3("Ambient Light Color", &this->cb_ps_light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
-    ImGui::DragFloat("Ambient Light Strength", &this->cb_ps_light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
-   /* if (ImGui::Button("CLick Me"))
-    {
-        counter += 1;
-    }
-    ImGui::SameLine();
-    std::string clickCount = "Click Count: " + std::to_string(counter);
-    ImGui::Text(clickCount.c_str());
-    */
-   // ImGui::DragFloat("Alpha", &alpha, 0.1f, 0.0f, 1.0f);
-   // ImGui::DragFloat3("Translation X/Y/Z", transtalionOffeset, 0.1f, -5.0f, 5.0f);
-    ImGui::End();
-    //Assemble Together Draw Data
-    ImGui::Render();
-    //Render Draw Data
-    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
 bool Graphics::InitializeDirectX(HWND hwnd)
@@ -299,16 +279,34 @@ bool Graphics::InitializeShaders()
 #endif
     }
     
-    D3D11_INPUT_ELEMENT_DESC layout[] =
+    D3D11_INPUT_ELEMENT_DESC layout3D[] =
     { 
         {"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 },
         {"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 },
         {"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 }
+    };    
+    
+    D3D11_INPUT_ELEMENT_DESC layout2D[] =
+    { 
+        {"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        {"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
-    UINT numElements = ARRAYSIZE(layout);
+    UINT numElements3D = ARRAYSIZE(layout3D);
 
-    if (!mVertexShader.Initialize(this->mDevice, shaderFolder + L"vertexshader.cso", layout, numElements))
+    UINT numElements2D = ARRAYSIZE(layout2D);
+
+    if (!mVertexShader_2d.Initialize(this->mDevice, shaderFolder + L"vertexshader_2d.cso", layout2D, numElements2D))
+    {
+        return false;
+    }
+
+    if (!mVertexShader.Initialize(this->mDevice, shaderFolder + L"vertexshader.cso", layout3D, numElements3D))
+    {
+        return false;
+    }
+
+    if (!mPixelShader_2d.Initialize(this->mDevice, shaderFolder + L"pixelshader_2d.cso"))
     {
         return false;
     }
@@ -341,6 +339,9 @@ bool Graphics::InitializeScene()
         COM_ERROR_IF_FAILED(hr, "Failed to create wic texture from file.");
 
         //Initialize Constant Buffer(s)
+        hr = this->cb_vs_vertexshader_2d.Initialize(this->mDevice.Get(), this->mDeviceContext.Get());
+        COM_ERROR_IF_FAILED(hr, "Failed to initialize 2d constant buffer.");     
+
         hr = this->cb_vs_vertexshader.Initialize(this->mDevice.Get(), this->mDeviceContext.Get());
         COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
@@ -354,11 +355,17 @@ bool Graphics::InitializeScene()
             //"Data\\Objects\\samp\\blue_cube_notexture.fbx",
             //"Data\\Objects\\fbx\\Dragon.fbx",
             "Data\\Objects\\nanosuit\\nanosuit.obj",
+            //Data\\Scenes\\Scene1\\Space_Station_Scene.obj",
+            //"Data\\Scenes\\room.fbx",
+            //"Data\\Scenes\\Castle\\Castle OBJ.obj",
             //"Data\\Objects\\free\\spot\\spot.obj",
             //"Data\\Objects\\Samples\\orange_embeddedtexture.fbx",
             //"Data\\Objects\\Samples\\orange_disktexture.fbx",
             //"Data\\Objects\\Samples\\person_embeddedindexed.blend",
             //"Data\\Objects\\Samples\\dodge_challenger.fbx",
+            //"Data\\Objects\\Samples\\Statue\\12337_Statue_v1_l1.obj",
+            //"Data\\Objects\\Samples\\Palm_Tree\\10446_Palm_Tree_v1_max2010_iteration-2.obj",
+            //"Data\\Scenes\\Organodron_City\\Organodron_City.obj",
             this->mDevice.Get(), this->mDeviceContext.Get(), this->cb_vs_vertexshader))
         {
             return false;
@@ -367,9 +374,14 @@ bool Graphics::InitializeScene()
 
         if (!mLight.Initialize(this->mDevice.Get(), this->mDeviceContext.Get(), this->cb_vs_vertexshader))
             return false;
+        
+        if (!mSprite.Initialize(mDevice.Get(), mDeviceContext.Get(), 256, 256, "Data/Textures/t1.jpg", cb_vs_vertexshader_2d))
+            return false;
 
-        mCamera.SetPosition(0.0f, 0.0f, -2.0f);
-        mCamera.SetProjectionValues(90.0f, static_cast<float>(mWindowWidth) / static_cast<float>(mWindowHeight), 0.1f, 3000.0f);
+        mCamera2D.SetProjectionValues(mWindowWidth, mWindowHeight, 0.0f, 1.0f);
+
+        mCamera3D.SetPosition(0.0f, 0.0f, -2.0f);
+        mCamera3D.SetProjectionValues(90.0f, static_cast<float>(mWindowWidth) / static_cast<float>(mWindowHeight), 0.1f, 10000.0f);
     }
     catch (COMException & exception)
     {

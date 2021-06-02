@@ -74,12 +74,12 @@ void Engine::Update()
         {
             if (me.GetType() == MouseEvent::EventType::RAW_MOVE)
             {
-                this->mgfx.mCamera.AdjustRotation((float)me.GetPosY() * 0.01f, (float)me.GetPosX() * 0.01f, 0);
+                this->mgfx.mCamera3D.AdjustRotation((float)me.GetPosY() * 0.01f, (float)me.GetPosX() * 0.01f, 0);
             }
         }
     }
 
-    //this->mgfx.mGameObject.AdjustRotation(0.0f, 0.001f*dt, 0.0f);
+    //this->mgfx.mGameObject.AdjustRotation( 0.0f, 0.001f*dt,  0.0f);
 
     float cameraSpeed = 0.006f;
 
@@ -90,35 +90,35 @@ void Engine::Update()
 
     if (mKeyboard.KeyIsPressed('W'))
     {
-        this->mgfx.mCamera.AdjustPosition(this->mgfx.mCamera.GetForwardVector() * cameraSpeed * dt);
+        this->mgfx.mCamera3D.AdjustPosition(this->mgfx.mCamera3D.GetForwardVector() * cameraSpeed * dt);
     }
     if (mKeyboard.KeyIsPressed('S'))
     {
-        this->mgfx.mCamera.AdjustPosition(this->mgfx.mCamera.GetBackwardVector() * cameraSpeed * dt);
+        this->mgfx.mCamera3D.AdjustPosition(this->mgfx.mCamera3D.GetBackwardVector() * cameraSpeed * dt);
     }
     if (mKeyboard.KeyIsPressed('A'))
     {
-        this->mgfx.mCamera.AdjustPosition(this->mgfx.mCamera.GetLeftVector() * cameraSpeed * dt);
+        this->mgfx.mCamera3D.AdjustPosition(this->mgfx.mCamera3D.GetLeftVector() * cameraSpeed * dt);
     }
     if (mKeyboard.KeyIsPressed('D'))
     {
-        this->mgfx.mCamera.AdjustPosition(this->mgfx.mCamera.GetRightVector() * cameraSpeed * dt);
+        this->mgfx.mCamera3D.AdjustPosition(this->mgfx.mCamera3D.GetRightVector() * cameraSpeed * dt);
     }
     if (mKeyboard.KeyIsPressed(VK_SPACE))
     {
-        this->mgfx.mCamera.AdjustPosition(0.0f, cameraSpeed * dt, 0.0f);
+        this->mgfx.mCamera3D.AdjustPosition(0.0f, cameraSpeed * dt, 0.0f);
     }
     if (mKeyboard.KeyIsPressed('Z'))
     {
-        this->mgfx.mCamera.AdjustPosition(0.0f, -cameraSpeed * dt, 0.0f);
+        this->mgfx.mCamera3D.AdjustPosition(0.0f, -cameraSpeed * dt, 0.0f);
     }
 
     if (mKeyboard.KeyIsPressed('C'))
     {
-        XMVECTOR lightPosition = this->mgfx.mCamera.GetPositionVector();
-        lightPosition += this->mgfx.mCamera.GetForwardVector();
+        XMVECTOR lightPosition = this->mgfx.mCamera3D.GetPositionVector();
+        lightPosition += this->mgfx.mCamera3D.GetForwardVector();
         this->mgfx.mLight.SetPosition(lightPosition);
-        this->mgfx.mLight.SetRotation(this->mgfx.mCamera.GetRotationFloat3());
+        this->mgfx.mLight.SetRotation(this->mgfx.mCamera3D.GetRotationFloat3());
     }
 }
 

@@ -16,25 +16,25 @@
     <Filter Include="Header Files\KeyBoard">
       <UniqueIdentifier>{c6fbb2a4-9e1e-4bbc-b4e7-ef72f7b0a7c4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files\Keyboard">
-      <UniqueIdentifier>{a3a9965c-a4bd-4a45-9197-042c9ef75ba4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Mouse">
       <UniqueIdentifier>{75067374-2f71-4863-bbcf-1cd7342d4de5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Mouse">
-      <UniqueIdentifier>{98e632a0-16a3-467b-a630-982b9c00c071}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Graphics">
       <UniqueIdentifier>{5570018b-2255-4a77-988f-cab75363c14c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files\Graphics">
-      <UniqueIdentifier>{a0e34cdc-7b47-4272-9077-5d228ff1c6eb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Graphics\ImGui">
       <UniqueIdentifier>{9feb3d16-5854-45fb-a2f1-712f2a12a1f8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files\Graphics\ImGui">
+    <Filter Include="Source Files\Graphics">
+      <UniqueIdentifier>{a0e34cdc-7b47-4272-9077-5d228ff1c6eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Keyboard">
+      <UniqueIdentifier>{a3a9965c-a4bd-4a45-9197-042c9ef75ba4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Mouse">
+      <UniqueIdentifier>{98e632a0-16a3-467b-a630-982b9c00c071}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\ImGui">
       <UniqueIdentifier>{63a70590-c355-44f7-ad3b-56af2444ccf6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -45,83 +45,95 @@
     <ClCompile Include="ErrorLogger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RenderWindow.cpp">
-      <Filter>Resource Files</Filter>
-    </ClCompile>
-    <ClCompile Include="WindowContainer.cpp">
-      <Filter>Resource Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine.cpp">
-      <Filter>Resource Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Keyboard\KeyboardEvent.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Keyboard\KeyboardClass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Mouse\MouseClass.cpp">
-      <Filter>Resource Files\Mouse</Filter>
+      <Filter>Source Files\Mouse</Filter>
     </ClCompile>
     <ClCompile Include="Mouse\MouseEvent.cpp">
-      <Filter>Resource Files\Mouse</Filter>
+      <Filter>Source Files\Mouse</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\Graphics.cpp">
-      <Filter>Resource Files\Graphics</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\AdaptorReader.cpp">
-      <Filter>Resource Files\Graphics</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\Shaders.cpp">
-      <Filter>Resource Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Camera.cpp">
-      <Filter>Resource Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Timer.cpp">
-      <Filter>Resource Files</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\ImGui\imgui_widgets.cpp">
-      <Filter>Resource Files\Graphics\ImGui</Filter>
+      <Filter>Resource Files\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\ImGui\imgui_tables.cpp">
-      <Filter>Resource Files\Graphics\ImGui</Filter>
+      <Filter>Resource Files\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\ImGui\imgui_impl_win32.cpp">
-      <Filter>Resource Files\Graphics\ImGui</Filter>
+      <Filter>Resource Files\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\ImGui\imgui_impl_dx11.cpp">
-      <Filter>Resource Files\Graphics\ImGui</Filter>
+      <Filter>Resource Files\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\ImGui\imgui_draw.cpp">
-      <Filter>Resource Files\Graphics\ImGui</Filter>
+      <Filter>Resource Files\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\ImGui\imgui.cpp">
-      <Filter>Resource Files\Graphics\ImGui</Filter>
+      <Filter>Resource Files\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\Model.cpp">
-      <Filter>Resource Files\Graphics</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\Mesh.cpp">
-      <Filter>Resource Files\Graphics</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\GameObject.cpp">
-      <Filter>Resource Files\Graphics</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\Color.cpp">
-      <Filter>Resource Files\Graphics</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\Texture.cpp">
-      <Filter>Resource Files\Graphics</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="StringHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\RenderableGameObject.cpp">
-      <Filter>Resource Files\Graphics</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\Light.cpp">
-      <Filter>Resource Files\Graphics</Filter>
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GameObject2D.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GameObject3D.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Camera3D.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Camera2D.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Sprite.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Keyboard\KeyboardClass.cpp">
+      <Filter>Source Files\Keyboard</Filter>
+    </ClCompile>
+    <ClCompile Include="Keyboard\KeyboardEvent.cpp">
+      <Filter>Source Files\Keyboard</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowContainer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -168,9 +180,6 @@
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\ConstantBuffer.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Camera.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Timer.h">
@@ -230,6 +239,21 @@
     <ClInclude Include="Graphics\Light.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\GameObject2D.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GameObject3D.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Camera3D.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Camera2D.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Sprite.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Graphics\vertexshader.hlsl">
@@ -239,6 +263,12 @@
       <Filter>Resource Files</Filter>
     </FxCompile>
     <FxCompile Include="pixelShader_nolight.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
+    <FxCompile Include="pixelShader_2d.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
+    <FxCompile Include="vertexshader_2d.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
   </ItemGroup>
