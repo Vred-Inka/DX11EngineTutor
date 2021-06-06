@@ -43,15 +43,23 @@ void Graphics::RenderFrame()
     float bgcolor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
     mDeviceContext->ClearRenderTargetView(mRenderTargetView.Get(), bgcolor);
     mDeviceContext->ClearDepthStencilView(mDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-    mDeviceContext->IASetInputLayout(mVertexShader.GetInputLayout());
+    
     mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     mDeviceContext->RSSetState(mRasterizerState.Get());
     mDeviceContext->OMSetDepthStencilState(mDepthStencilState.Get(), 0);
     mDeviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
     mDeviceContext->PSSetSamplers(0, 1, mSamplerState.GetAddressOf());
+
+    mDeviceContext->OMSetDepthStencilState(mDepthStencilState_drawMask.Get(), 0);
+    mDeviceContext->IASetInputLayout(mVertexShader_2d.GetInputLayout());
+    mDeviceContext->PSSetShader(mPixelShader_2d.GetShader(), NULL, 0);
+    mDeviceContext->VSSetShader(mVertexShader_2d.GetShader(), NULL, 0);
+    mSprite.Draw(mCamera2D.GetWorldMatrix() * mCamera2D.GetOrthoMatrix());
+
     mDeviceContext->VSSetShader(mVertexShader.GetShader(), NULL, 0);
     mDeviceContext->PSSetShader(mPixelShader.GetShader(), NULL, 0);
+    mDeviceContext->IASetInputLayout(mVertexShader.GetInputLayout());
+    mDeviceContext->OMSetDepthStencilState(mDepthStencilState_applyMask.Get(), 0);
 
     XMFLOAT3 cameraPos = mCamera3D.GetPositionFloat3();
     XMFLOAT3 cameraRot = mCamera3D.GetRotationFloat3();
@@ -73,10 +81,6 @@ void Graphics::RenderFrame()
         mLight.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
     }
 
-    mDeviceContext->IASetInputLayout(mVertexShader_2d.GetInputLayout());
-    mDeviceContext->PSSetShader(mPixelShader_2d.GetShader(), NULL, 0);
-    mDeviceContext->VSSetShader(mVertexShader_2d.GetShader(), NULL, 0);
-    mSprite.Draw(mCamera2D.GetWorldMatrix() * mCamera2D.GetOrthoMatrix());
 
     DrawTextExemple();
 
@@ -206,6 +210,40 @@ bool Graphics::InitializeDirectX(HWND hwnd)
 
         hr = this->mDevice->CreateDepthStencilState(&depthstencildesc, this->mDepthStencilState.GetAddressOf());
         COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil state.");
+
+        //Create depth stencil state
+        CD3D11_DEPTH_STENCIL_DESC depthstencildesc_drawMask(D3D11_DEFAULT);
+        depthstencildesc_drawMask.DepthEnable = FALSE;
+        depthstencildesc_drawMask.StencilEnable = TRUE;
+        depthstencildesc_drawMask.BackFace.StencilFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_NEVER;
+        depthstencildesc_drawMask.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+        depthstencildesc_drawMask.BackFace.StencilFailOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+        depthstencildesc_drawMask.BackFace.StencilPassOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+
+        depthstencildesc_drawMask.FrontFace.StencilFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_ALWAYS;
+        depthstencildesc_drawMask.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+        depthstencildesc_drawMask.FrontFace.StencilFailOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+        depthstencildesc_drawMask.FrontFace.StencilPassOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_INCR_SAT;
+
+        hr = this->mDevice->CreateDepthStencilState(&depthstencildesc_drawMask, this->mDepthStencilState_drawMask.GetAddressOf());
+        COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil state for drawing mask.");
+
+        CD3D11_DEPTH_STENCIL_DESC depthstencildesc_applyMask(D3D11_DEFAULT);
+        depthstencildesc_applyMask.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
+        depthstencildesc_applyMask.StencilEnable = TRUE;
+        depthstencildesc_applyMask.BackFace.StencilFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_NEVER;
+        depthstencildesc_applyMask.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+        depthstencildesc_applyMask.BackFace.StencilFailOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+        depthstencildesc_applyMask.BackFace.StencilPassOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+
+        depthstencildesc_applyMask.FrontFace.StencilFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS;
+        depthstencildesc_applyMask.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+        depthstencildesc_applyMask.FrontFace.StencilFailOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+        depthstencildesc_applyMask.FrontFace.StencilPassOp = D3D11_STENCIL_OP::D3D11_STENCIL_OP_KEEP;
+
+        hr = this->mDevice->CreateDepthStencilState(&depthstencildesc_applyMask, this->mDepthStencilState_applyMask.GetAddressOf());
+        COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil state for applying mask.");
+
 
         //Create & set the Viewport
         CD3D11_VIEWPORT viewport(0.0f, 0.0f, static_cast<float>(this->mWindowWidth), static_cast<float>(this->mWindowHeight));;
@@ -355,8 +393,9 @@ bool Graphics::InitializeScene()
             //"Data\\Objects\\samp\\blue_cube_notexture.fbx",
             //"Data\\Objects\\fbx\\Dragon.fbx",
             "Data\\Objects\\nanosuit\\nanosuit.obj",
-            //Data\\Scenes\\Scene1\\Space_Station_Scene.obj",
+            //"Data\\Scenes\\Scene1\\Space_Station_Scene.obj",
             //"Data\\Scenes\\room.fbx",
+            //"Data\\Scenes\\full_1.fbx",
             //"Data\\Scenes\\Castle\\Castle OBJ.obj",
             //"Data\\Objects\\free\\spot\\spot.obj",
             //"Data\\Objects\\Samples\\orange_embeddedtexture.fbx",
@@ -377,6 +416,8 @@ bool Graphics::InitializeScene()
         
         if (!mSprite.Initialize(mDevice.Get(), mDeviceContext.Get(), 256, 256, "Data/Textures/t1.jpg", cb_vs_vertexshader_2d))
             return false;
+
+        mSprite.SetPosition(XMFLOAT3(mWindowWidth/2 - mSprite.GetWidth()/2, mWindowHeight/2 -mSprite.GetHeight()/2, 0.0f ));
 
         mCamera2D.SetProjectionValues(mWindowWidth, mWindowHeight, 0.0f, 1.0f);
 

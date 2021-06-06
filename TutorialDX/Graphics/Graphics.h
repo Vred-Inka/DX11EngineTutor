@@ -68,6 +68,8 @@ private:
     Microsoft::WRL::ComPtr<ID3D11DepthStencilView> mDepthStencilView;
     Microsoft::WRL::ComPtr<ID3D11Texture2D> mDepthStencilBuffer;
     Microsoft::WRL::ComPtr<ID3D11DepthStencilState> mDepthStencilState;
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilState> mDepthStencilState_drawMask;
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilState> mDepthStencilState_applyMask;
 
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> mRasterizerState;
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> mRasterizerState_CullFront;

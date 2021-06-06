@@ -17,7 +17,7 @@ bool Sprite::Initialize(ID3D11Device * device, ID3D11DeviceContext * deviceConte
         Vertex2D(-0.5f, -0.5f, 0.0f, 0.0f, 0.0f),
         Vertex2D(0.5f, -0.5f, 0.0f, 1.0f, 0.0f),
         Vertex2D(-0.5f, 0.5f, 0.0f, 0.0f, 1.0f),
-        Vertex2D(0.5f, -0.5f, 0.0f, 1.0f, 1.0f)
+        Vertex2D(0.5f, 0.5f, 0.0f, 1.0f, 1.0f)
     };
 
     std::vector<DWORD> indexData =
