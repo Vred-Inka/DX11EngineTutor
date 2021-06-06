@@ -49,17 +49,11 @@ void Graphics::RenderFrame()
     mDeviceContext->OMSetDepthStencilState(mDepthStencilState.Get(), 0);
     mDeviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
     mDeviceContext->PSSetSamplers(0, 1, mSamplerState.GetAddressOf());
-
-    mDeviceContext->OMSetDepthStencilState(mDepthStencilState_drawMask.Get(), 0);
-    mDeviceContext->IASetInputLayout(mVertexShader_2d.GetInputLayout());
-    mDeviceContext->PSSetShader(mPixelShader_2d.GetShader(), NULL, 0);
-    mDeviceContext->VSSetShader(mVertexShader_2d.GetShader(), NULL, 0);
-    mSprite.Draw(mCamera2D.GetWorldMatrix() * mCamera2D.GetOrthoMatrix());
-
+       
     mDeviceContext->VSSetShader(mVertexShader.GetShader(), NULL, 0);
     mDeviceContext->PSSetShader(mPixelShader.GetShader(), NULL, 0);
     mDeviceContext->IASetInputLayout(mVertexShader.GetInputLayout());
-    mDeviceContext->OMSetDepthStencilState(mDepthStencilState_applyMask.Get(), 0);
+    mDeviceContext->OMSetDepthStencilState(mDepthStencilState.Get(), 0);
 
     XMFLOAT3 cameraPos = mCamera3D.GetPositionFloat3();
     XMFLOAT3 cameraRot = mCamera3D.GetRotationFloat3();
@@ -133,6 +127,16 @@ void Graphics::DrawTextExemple()
     }
     mSpriteBatch->Begin();
     mSpriteFont->DrawString(mSpriteBatch.get(), StringHelper::StringToWide(fpsString).c_str(), XMFLOAT2(0, 0), Colors::White, 0.0f, XMFLOAT2(0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f));
+    mSpriteBatch->End();
+
+    mDeviceContext->OMSetDepthStencilState(mDepthStencilState_drawMask.Get(), 0);
+    mDeviceContext->IASetInputLayout(mVertexShader_2d.GetInputLayout());
+    mDeviceContext->PSSetShader(nullptr, NULL, 0);
+    mDeviceContext->VSSetShader(mVertexShader_2d.GetShader(), NULL, 0);
+    mSprite.Draw(mCamera2D.GetWorldMatrix() * mCamera2D.GetOrthoMatrix());
+
+    mSpriteBatch->Begin(SpriteSortMode_Deferred,nullptr, nullptr, mDepthStencilState_applyMask.Get());
+    mSpriteFont->DrawString(mSpriteBatch.get(), StringHelper::StringToWide(fpsString).c_str(), XMFLOAT2(0, 0), Colors::Red, 0.0f, XMFLOAT2(0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f));
     mSpriteBatch->End();
 }
 
@@ -417,7 +421,9 @@ bool Graphics::InitializeScene()
         if (!mSprite.Initialize(mDevice.Get(), mDeviceContext.Get(), 256, 256, "Data/Textures/t1.jpg", cb_vs_vertexshader_2d))
             return false;
 
-        mSprite.SetPosition(XMFLOAT3(mWindowWidth/2 - mSprite.GetWidth()/2, mWindowHeight/2 -mSprite.GetHeight()/2, 0.0f ));
+        //mSprite.SetPosition(XMFLOAT3(mWindowWidth/2 - mSprite.GetWidth()/2, mWindowHeight/2 -mSprite.GetHeight()/2, 0.0f ));
+        mSprite.SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
+        mSprite.SetScale(24,24,0.0f);
 
         mCamera2D.SetProjectionValues(mWindowWidth, mWindowHeight, 0.0f, 1.0f);
 
