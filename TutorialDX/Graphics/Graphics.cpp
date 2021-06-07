@@ -31,12 +31,12 @@ void Graphics::RenderFrame()
 {
     static float translationOffset[3] = { 0, 0, 0.0f };
     static float rotationOffset[3] = { 0, 0, 0.0f };
-    cb_ps_light.data.dynamicLightColor = mLight.mLightColor;
-    cb_ps_light.data.dynamicLightStrength = mLight.mLightStrength;
-    cb_ps_light.data.dynamicLightPosition = mCamera3D.GetPositionFloat3();
-   // cb_ps_light.data.mDynamicLightAttenuation_a = mLight.mAttenuation_a;
-  //  cb_ps_light.data.mDynamicLightAttenuation_b = mLight.mAttenuation_b;
-  //  cb_ps_light.data.mDynamicLightAttenuation_c = mLight.mAttenuation_c;
+    //cb_ps_light.data.dynamicLightColor = mLight.mLightColor;
+    //cb_ps_light.data.dynamicLightStrength = mLight.mLightStrength;
+    cb_ps_light.data.dynamicLightPosition = mLight.GetPositionFloat3();
+    cb_ps_light.data.mDynamicLightAttenuation_a = mLight.mAttenuation_a;
+    cb_ps_light.data.mDynamicLightAttenuation_b = mLight.mAttenuation_b;
+    cb_ps_light.data.mDynamicLightAttenuation_c = mLight.mAttenuation_c;
     cb_ps_light.ApplyChanges();
     mDeviceContext->PSSetConstantBuffers(0, 1, cb_ps_light.GetAddressOf());
 
@@ -49,11 +49,18 @@ void Graphics::RenderFrame()
     mDeviceContext->OMSetDepthStencilState(mDepthStencilState.Get(), 0);
     mDeviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
     mDeviceContext->PSSetSamplers(0, 1, mSamplerState.GetAddressOf());
+    
+    //sprite mask
+    mDeviceContext->OMSetDepthStencilState(mDepthStencilState_drawMask.Get(), 0);
+    mDeviceContext->IASetInputLayout(mVertexShader_2d.GetInputLayout());
+    mDeviceContext->PSSetShader(mPixelShader_2d_discard.GetShader(), NULL, 0);
+    mDeviceContext->VSSetShader(mVertexShader_2d.GetShader(), NULL, 0);
+    mSprite.Draw(mCamera2D.GetWorldMatrix() * mCamera2D.GetOrthoMatrix());
        
     mDeviceContext->VSSetShader(mVertexShader.GetShader(), NULL, 0);
     mDeviceContext->PSSetShader(mPixelShader.GetShader(), NULL, 0);
     mDeviceContext->IASetInputLayout(mVertexShader.GetInputLayout());
-    mDeviceContext->OMSetDepthStencilState(mDepthStencilState.Get(), 0);
+    mDeviceContext->OMSetDepthStencilState(mDepthStencilState_applyMask.Get(), 0);
 
     XMFLOAT3 cameraPos = mCamera3D.GetPositionFloat3();
     XMFLOAT3 cameraRot = mCamera3D.GetRotationFloat3();
@@ -61,8 +68,8 @@ void Graphics::RenderFrame()
     static float cameraRotation[3] = { cameraRot.x, cameraRot.y, cameraRot.z };
 
     {
-        mLight.SetPosition(translationOffset[0], translationOffset[1], translationOffset[2]);
-        mLight.SetRotation(rotationOffset[0], rotationOffset[1], rotationOffset[2]);
+       // mLight.SetPosition(translationOffset[0], translationOffset[1], translationOffset[2]);
+      //  mLight.SetRotation(rotationOffset[0], rotationOffset[1], rotationOffset[2]);
 
         //mCamera.SetPosition(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
        // mCamera.SetRotation(cameraRotation[0], cameraRotation[1], cameraRotation[2]);
@@ -89,7 +96,7 @@ void Graphics::RenderFrame()
     ImGui::DragFloat("Ambient Light Strength", &cb_ps_light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
     ImGui::Separator();
     ImGui::DragFloat3("Denamic Light Color", &cb_ps_light.data.dynamicLightColor.x, 0.01f, 0.0f, 1.0f);
-    ImGui::DragFloat("Dinamic Light Strength", &cb_ps_light.data.dynamicLightStrength, 0.01f, 0.0f, 1.0f);
+    ImGui::DragFloat("Dinamic Light Strength", &cb_ps_light.data.dynamicLightStrength, 0.01f, 0.0f, 10.0f);
     ImGui::End();
     ImGui::Begin("Light position Controls");
     ImGui::DragFloat3("translation offset", translationOffset, 0.01f, -5.0f, 5.0f);
@@ -102,8 +109,8 @@ void Graphics::RenderFrame()
     ImGui::End();
 
     ImGui::Begin("Camera Controls");
-    ImGui::DragFloat3("position", cameraPosition, 0.01f, -5.0f, 5.0f);
-    ImGui::DragFloat3("rotation", cameraRotation, 0.01f, -5.0f, 5.0f);
+   // ImGui::DragFloat3("position", &mLight.GetPositionVector().m128_f32.x, 0.01f, -5.0f, 5.0f);
+   // ImGui::DragFloat3("rotation", &mLight.GetRotationFloat3().x, 0.01f, -5.0f, 5.0f);
     ImGui::End();
     //Assemble Together Draw Data
     ImGui::Render();
@@ -129,15 +136,6 @@ void Graphics::DrawTextExemple()
     mSpriteFont->DrawString(mSpriteBatch.get(), StringHelper::StringToWide(fpsString).c_str(), XMFLOAT2(0, 0), Colors::White, 0.0f, XMFLOAT2(0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f));
     mSpriteBatch->End();
 
-    mDeviceContext->OMSetDepthStencilState(mDepthStencilState_drawMask.Get(), 0);
-    mDeviceContext->IASetInputLayout(mVertexShader_2d.GetInputLayout());
-    mDeviceContext->PSSetShader(nullptr, NULL, 0);
-    mDeviceContext->VSSetShader(mVertexShader_2d.GetShader(), NULL, 0);
-    mSprite.Draw(mCamera2D.GetWorldMatrix() * mCamera2D.GetOrthoMatrix());
-
-    mSpriteBatch->Begin(SpriteSortMode_Deferred,nullptr, nullptr, mDepthStencilState_applyMask.Get());
-    mSpriteFont->DrawString(mSpriteBatch.get(), StringHelper::StringToWide(fpsString).c_str(), XMFLOAT2(0, 0), Colors::Red, 0.0f, XMFLOAT2(0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f));
-    mSpriteBatch->End();
 }
 
 bool Graphics::InitializeDirectX(HWND hwnd)
@@ -353,6 +351,11 @@ bool Graphics::InitializeShaders()
         return false;
     }
 
+    if (!mPixelShader_2d_discard.Initialize(this->mDevice, shaderFolder + L"pixelshader_2d_discard.cso"))
+    {
+        return false;
+    }
+
     if (!mPixelShader.Initialize(this->mDevice, shaderFolder + L"pixelshader.cso"))
     {
         return false;
@@ -396,8 +399,9 @@ bool Graphics::InitializeScene()
         if (!mGameObject.Initialize(
             //"Data\\Objects\\samp\\blue_cube_notexture.fbx",
             //"Data\\Objects\\fbx\\Dragon.fbx",
-            "Data\\Objects\\nanosuit\\nanosuit.obj",
-            //"Data\\Scenes\\Scene1\\Space_Station_Scene.obj",
+            //"Data\\Objects\\nanosuit\\nanosuit.obj",
+            "Data\\Scenes\\Scene1\\Space_Station_Scene.obj",
+            //"Data\\Scenes\\Coffee\\coffee.obj",
             //"Data\\Scenes\\room.fbx",
             //"Data\\Scenes\\full_1.fbx",
             //"Data\\Scenes\\Castle\\Castle OBJ.obj",
@@ -418,12 +422,13 @@ bool Graphics::InitializeScene()
         if (!mLight.Initialize(this->mDevice.Get(), this->mDeviceContext.Get(), this->cb_vs_vertexshader))
             return false;
         
-        if (!mSprite.Initialize(mDevice.Get(), mDeviceContext.Get(), 256, 256, "Data/Textures/t1.jpg", cb_vs_vertexshader_2d))
+        if (!mSprite.Initialize(mDevice.Get(), mDeviceContext.Get(), 256, 256, "Data/Textures/mask_2.png", cb_vs_vertexshader_2d))
             return false;
 
-        //mSprite.SetPosition(XMFLOAT3(mWindowWidth/2 - mSprite.GetWidth()/2, mWindowHeight/2 -mSprite.GetHeight()/2, 0.0f ));
-        mSprite.SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
-        mSprite.SetScale(24,24,0.0f);
+        //mSprite.SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
+        mSprite.SetScale(mWindowWidth, mWindowHeight, 0.0f);
+        mSprite.SetPosition(XMFLOAT3(mWindowWidth/2 - mSprite.GetWidth()/2, mWindowHeight/2 -mSprite.GetHeight()/2, 0.0f ));
+
 
         mCamera2D.SetProjectionValues(mWindowWidth, mWindowHeight, 0.0f, 1.0f);
 

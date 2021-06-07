@@ -79,12 +79,12 @@ void Engine::Update()
         }
     }
 
-    mgfx.mGameObject.AdjustRotation( 0.0f, 0.001f*dt,  0.0f);
+    //mgfx.mGameObject.AdjustRotation( 0.0f, 0.001f*dt,  0.0f);
 
-    mgfx.mSprite.AdjustPosition(0.1f* dt, 0.0f, 0.0f);
-    if (mgfx.mSprite.GetPositionFloat3().x > 160.0)
+   // mgfx.mSprite.AdjustPosition(0.1f* dt, 0.0f, 0.0f);
+  //  if (mgfx.mSprite.GetPositionFloat3().x > 160.0)
     {
-        mgfx.mSprite.SetPosition(0.01f, 0.0f, 0.0f);
+   //     mgfx.mSprite.SetPosition(0.01f, 0.0f, 0.0f);
     }
 
     float cameraSpeed = 0.006f;
