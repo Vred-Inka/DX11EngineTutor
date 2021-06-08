@@ -69,7 +69,7 @@ void Engine::Update()
         {
             OutputDebugStringA("MouseEvent::EventType::WheelDown\n");
         }
-        
+
         if (mMouse.IsRightDown())
         {
             if (me.GetType() == MouseEvent::EventType::RAW_MOVE)
@@ -79,12 +79,32 @@ void Engine::Update()
         }
     }
 
-    //mgfx.mGameObject.AdjustRotation( 0.0f, 0.001f*dt,  0.0f);
+    mgfx.mGameObject.AdjustRotation( 0.0f, 0.001f*dt,  0.0f);
+    XMFLOAT3 goPos = mgfx.mLight.GetRotationFloat3();
+    float goPosition[3] = { goPos.x, goPos.y, goPos.z };
 
-   // mgfx.mSprite.AdjustPosition(0.1f* dt, 0.0f, 0.0f);
-  //  if (mgfx.mSprite.GetPositionFloat3().x > 160.0)
+    float r = 30;
+    float fi = XM_PI * 2.0f;
+    float t = dt * 0.001F;
+
+    static float step = 0.0f;
+
+
+    //mgfx.mLight.AdjustPosition(0.0045f * dt, 0.0f, 0.005f * goPos.x * dt );
+    //mgfx.mLight.AdjustPosition(0.0f, 0.0f, 0.05f * std::pow(t,3) - 0.01 * std::pow(t,4) );
+    mgfx.mLight.SetPosition(r * std::cos(step), 5.0f, r * std::sin(step));
+
+    if (mgfx.mLight.GetPositionFloat3().x > 1000.0 || mgfx.mLight.GetPositionFloat3().y > 1000 ||
+        mgfx.mLight.GetPositionFloat3().y > 30.0 || mgfx.mLight.GetPositionFloat3().y < 0.0||
+        mgfx.mLight.GetPositionFloat3().z > 30.0 || mgfx.mLight.GetPositionFloat3().z < -30.0)
     {
-   //     mgfx.mSprite.SetPosition(0.01f, 0.0f, 0.0f);
+       // mgfx.mLight.SetPosition(5.0f, 5.0f, 0.0f);
+    }
+
+    step += 0.001f;
+    if (step > 6.3f)
+    {
+        step = 0.0f;
     }
 
     float cameraSpeed = 0.006f;
@@ -126,6 +146,24 @@ void Engine::Update()
         this->mgfx.mLight.SetPosition(lightPosition);
         this->mgfx.mLight.SetRotation(this->mgfx.mCamera3D.GetRotationFloat3());
     }
+
+    if (mKeyboard.KeyIsPressed(VK_UP))
+    {
+        this->mgfx.mGameObject.AdjustPosition(this->mgfx.mCamera3D.GetForwardVector(true) * cameraSpeed * dt);
+    }
+    if (mKeyboard.KeyIsPressed(VK_DOWN))
+    {
+        this->mgfx.mGameObject.AdjustPosition(this->mgfx.mCamera3D.GetBackwardVector(true) * cameraSpeed * dt);
+    }
+    if (mKeyboard.KeyIsPressed(VK_LEFT))
+    {
+        this->mgfx.mGameObject.AdjustPosition(this->mgfx.mCamera3D.GetLeftVector() * cameraSpeed * dt);
+    }
+    if (mKeyboard.KeyIsPressed(VK_RIGHT))
+    {
+        this->mgfx.mGameObject.AdjustPosition(this->mgfx.mCamera3D.GetRightVector() * cameraSpeed * dt);
+    }
+    
 }
 
 void Engine::RenderFrame()

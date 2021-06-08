@@ -29,8 +29,6 @@ bool Graphics::Initialize(HWND hwnd, int width, int height)
 
 void Graphics::RenderFrame()
 {
-    static float translationOffset[3] = { 0, 0, 0.0f };
-    static float rotationOffset[3] = { 0, 0, 0.0f };
     //cb_ps_light.data.dynamicLightColor = mLight.mLightColor;
     //cb_ps_light.data.dynamicLightStrength = mLight.mLightStrength;
     cb_ps_light.data.dynamicLightPosition = mLight.GetPositionFloat3();
@@ -64,26 +62,20 @@ void Graphics::RenderFrame()
 
     XMFLOAT3 cameraPos = mCamera3D.GetPositionFloat3();
     XMFLOAT3 cameraRot = mCamera3D.GetRotationFloat3();
-    static float cameraPosition[3] = { cameraPos.x, cameraPos.y, cameraPos.z };
-    static float cameraRotation[3] = { cameraRot.x, cameraRot.y, cameraRot.z };
+    float cameraPosition[3] = { cameraPos.x, cameraPos.y, cameraPos.z };
+    float cameraRotation[3] = { cameraRot.x, cameraRot.y, cameraRot.z };
 
-    {
-       // mLight.SetPosition(translationOffset[0], translationOffset[1], translationOffset[2]);
-      //  mLight.SetRotation(rotationOffset[0], rotationOffset[1], rotationOffset[2]);
+    XMFLOAT3 lightPos = mLight.GetPositionFloat3();
+    XMFLOAT3 lightRot = mLight.GetRotationFloat3();
+    float lightPosition[3] = { lightPos.x, lightPos.y, lightPos.z };
+    float lightRotation[3] = { lightRot.x, lightRot.y, lightRot.z };
 
-        //mCamera.SetPosition(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
-       // mCamera.SetRotation(cameraRotation[0], cameraRotation[1], cameraRotation[2]);
-
-        mGameObject.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
-
-    }
-    {
-        mDeviceContext->PSSetShader(mPixelShader_nolight.GetShader(), NULL, 0);
-        mLight.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
-    }
+    XMFLOAT3 goPos = mGameObject.GetPositionFloat3();
+    XMFLOAT3 goRot = mGameObject.GetRotationFloat3();
+    float goPosition[3] = { goPos.x, goPos.y, goPos.z };
+    float goRotation[3] = { goRot.x, goRot.y, goRot.z };
 
 
-    DrawTextExemple();
 
     static int counter = 0;
     // Start the Dear ImGui frame
@@ -96,22 +88,51 @@ void Graphics::RenderFrame()
     ImGui::DragFloat("Ambient Light Strength", &cb_ps_light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
     ImGui::Separator();
     ImGui::DragFloat3("Denamic Light Color", &cb_ps_light.data.dynamicLightColor.x, 0.01f, 0.0f, 1.0f);
-    ImGui::DragFloat("Dinamic Light Strength", &cb_ps_light.data.dynamicLightStrength, 0.01f, 0.0f, 10.0f);
-    ImGui::End();
-    ImGui::Begin("Light position Controls");
-    ImGui::DragFloat3("translation offset", translationOffset, 0.01f, -5.0f, 5.0f);
-    ImGui::DragFloat3("rotation offset", rotationOffset, 0.01f, -5.0f, 5.0f);
-    ImGui::End();
-    ImGui::Begin("Attenuation Controls");
-    ImGui::DragFloat("Dynamic light Attenuation a", &cb_ps_light.data.mDynamicLightAttenuation_a, 0.01f, 0.1f, 10.0f);
-    ImGui::DragFloat("Dynamic light Attenuation b", &cb_ps_light.data.mDynamicLightAttenuation_b, 0.01f, 0.0f, 10.0f);
-    ImGui::DragFloat("Dynamic light Attenuation c", &cb_ps_light.data.mDynamicLightAttenuation_c, 0.01f, 0.0f, 10.0f);
+    ImGui::DragFloat("Dinamic Light Strength", &cb_ps_light.data.dynamicLightStrength, 0.01f, 0.0f, 100.0f);
     ImGui::End();
 
-    ImGui::Begin("Camera Controls");
-   // ImGui::DragFloat3("position", &mLight.GetPositionVector().m128_f32.x, 0.01f, -5.0f, 5.0f);
-   // ImGui::DragFloat3("rotation", &mLight.GetRotationFloat3().x, 0.01f, -5.0f, 5.0f);
+    ImGui::Begin("Positions");
+
+    ImGui::Text("Camera Controls");
+    ImGui::DragFloat3("Camera position", cameraPosition, 0.01f, -1000.0f, 1000.0f);
+    ImGui::DragFloat3("Camera rotation", cameraRotation, 0.01f, -10.0f, 10.0f);
+    ImGui::Separator();
+
+    ImGui::Text("GameObject position");
+    ImGui::DragFloat3("GO position", goPosition, 0.01f, -1000.0f, 1000.0f);
+    ImGui::DragFloat3("GO rotation", goRotation, 0.01f, -10.0f, 10.0f);
+    ImGui::Separator();
+
+    ImGui::Text("Light position");
+    ImGui::DragFloat3("Light position", lightPosition, 0.01f, -1000.0f, 1000.0f);
+    ImGui::DragFloat3("Light rotation", lightRotation, 0.01f, -10.0f, 10.0f);
     ImGui::End();
+
+    {
+        mCamera3D.SetPosition(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
+        mCamera3D.SetRotation(cameraRotation[0], cameraRotation[1], cameraRotation[2]);
+
+        mGameObject.SetPosition(goPosition[0], goPosition[1], goPosition[2]);
+        mGameObject.SetRotation(goRotation[0], goRotation[1], goRotation[2]);
+
+        mLight.SetPosition(lightPosition[0], lightPosition[1], lightPosition[2]);
+        mLight.SetRotation(lightRotation[0], lightRotation[1], lightRotation[2]);
+               
+        mScene.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
+        mGameObject.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
+
+        mDeviceContext->PSSetShader(mPixelShader_nolight.GetShader(), NULL, 0);
+        mLight.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
+    }
+
+    DrawTextExemple();
+    
+    //ImGui::Begin("Attenuation Controls");
+    //ImGui::DragFloat("Dynamic light Attenuation a", &cb_ps_light.data.mDynamicLightAttenuation_a, 0.01f, 0.1f, 10.0f);
+    //ImGui::DragFloat("Dynamic light Attenuation b", &cb_ps_light.data.mDynamicLightAttenuation_b, 0.01f, 0.0f, 10.0f);
+    //ImGui::DragFloat("Dynamic light Attenuation c", &cb_ps_light.data.mDynamicLightAttenuation_c, 0.01f, 0.0f, 10.0f);
+    //ImGui::End();
+
     //Assemble Together Draw Data
     ImGui::Render();
     //Render Draw Data
@@ -396,43 +417,58 @@ bool Graphics::InitializeScene()
         this->cb_ps_light.data.ambientLightColor = XMFLOAT3(1.0f, 1.0f, 1.0f);
         this->cb_ps_light.data.ambientLightStrength = 1.0f;
 
-        if (!mGameObject.Initialize(
-            //"Data\\Objects\\samp\\blue_cube_notexture.fbx",
-            //"Data\\Objects\\fbx\\Dragon.fbx",
-            //"Data\\Objects\\nanosuit\\nanosuit.obj",
+
+        if (!mScene.Initialize(
             "Data\\Scenes\\Scene1\\Space_Station_Scene.obj",
             //"Data\\Scenes\\Coffee\\coffee.obj",
             //"Data\\Scenes\\room.fbx",
             //"Data\\Scenes\\full_1.fbx",
             //"Data\\Scenes\\Castle\\Castle OBJ.obj",
-            //"Data\\Objects\\free\\spot\\spot.obj",
-            //"Data\\Objects\\Samples\\orange_embeddedtexture.fbx",
-            //"Data\\Objects\\Samples\\orange_disktexture.fbx",
-            //"Data\\Objects\\Samples\\person_embeddedindexed.blend",
-            //"Data\\Objects\\Samples\\dodge_challenger.fbx",
-            //"Data\\Objects\\Samples\\Statue\\12337_Statue_v1_l1.obj",
-            //"Data\\Objects\\Samples\\Palm_Tree\\10446_Palm_Tree_v1_max2010_iteration-2.obj",
-            //"Data\\Scenes\\Organodron_City\\Organodron_City.obj",
             this->mDevice.Get(), this->mDeviceContext.Get(), this->cb_vs_vertexshader))
         {
             return false;
         }
 
+        mScene.SetPosition(0.0f, 0.25f, 0.0f);
 
+
+        if (!mGameObject.Initialize(
+            //"Data\\Objects\\samp\\blue_cube_notexture.fbx",
+            //"Data\\Objects\\fbx\\Dragon.fbx",
+            "Data\\Objects\\nanosuit\\nanosuit.obj",
+            //"Data\\Objects\\free\\spot\\spot.obj",
+            //"Data\\Objects\\Samples\\orange_embeddedtexture.fbx",
+            //"Data\\Objects\\Samples\\orange_disktexture.fbx",
+            //"Data\\Objects\\Samples\\person_embeddedindexed.blend",
+            //"Data\\Objects\\Samples\\dodge_challenger.fbx",
+            //"Data\\Objects\\Samples\\Palm_Tree\\10446_Palm_Tree_v1_max2010_iteration-2.obj",
+            this->mDevice.Get(), this->mDeviceContext.Get(), this->cb_vs_vertexshader))
+        {
+            return false;
+        }
+
+        mGameObject.SetPosition(10.0f, 0.0f, -12.0f);
+     
         if (!mLight.Initialize(this->mDevice.Get(), this->mDeviceContext.Get(), this->cb_vs_vertexshader))
             return false;
+
+        cb_ps_light.data.dynamicLightStrength = 100.0f;
+        cb_ps_light.data.ambientLightStrength = 0.5f;
+        cb_ps_light.data.dynamicLightColor.x  = 1.0f;
+        mLight.SetPosition(5.0f, 12.0f, -15.0f);
+
         
         if (!mSprite.Initialize(mDevice.Get(), mDeviceContext.Get(), 256, 256, "Data/Textures/mask_2.png", cb_vs_vertexshader_2d))
             return false;
 
-        //mSprite.SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
         mSprite.SetScale(mWindowWidth, mWindowHeight, 0.0f);
         mSprite.SetPosition(XMFLOAT3(mWindowWidth/2 - mSprite.GetWidth()/2, mWindowHeight/2 -mSprite.GetHeight()/2, 0.0f ));
-
-
+        
         mCamera2D.SetProjectionValues(mWindowWidth, mWindowHeight, 0.0f, 1.0f);
 
-        mCamera3D.SetPosition(0.0f, 0.0f, -2.0f);
+        mCamera3D.SetPosition(5.0f, 12.0f, -36.0f);
+        mCamera3D.SetRotation(0.2f, 0.7f, 0.0f);
+
         mCamera3D.SetProjectionValues(90.0f, static_cast<float>(mWindowWidth) / static_cast<float>(mWindowHeight), 0.1f, 10000.0f);
     }
     catch (COMException & exception)

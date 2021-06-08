@@ -27,6 +27,7 @@ public:
     Camera2D mCamera2D;
     Sprite mSprite;
     RenderableGameObject mGameObject;
+    RenderableGameObject mScene;
     Light mLight;
 
 private:

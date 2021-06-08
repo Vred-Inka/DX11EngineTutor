@@ -12,7 +12,7 @@ void main(PS_INPUT input)
     float4 sampleColor = objTexture.Sample(objSamplerState, input.inTexCoord);
     if (sampleColor.a < 0.25)
     {
-        discard;
+        //discard;
     }
 }
 
