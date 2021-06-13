@@ -16,8 +16,8 @@ Texture::Texture(ID3D11Device * device, const Color * colorData, UINT width, UIN
 Texture::Texture(ID3D11Device * device, const std::string & filePath, aiTextureType type)
 {
     this->mType = type;
-
-    if (StringHelper::GetFileExtension(filePath) == ".dds")
+    std::string ex = StringHelper::GetFileExtension(filePath);
+    if (ex== "dds")
     {
         HRESULT hr = DirectX::CreateDDSTextureFromFile(device, StringHelper::StringToWide(filePath).c_str(), mTexture.GetAddressOf(), this->mTextureView.GetAddressOf());
         if (FAILED(hr))

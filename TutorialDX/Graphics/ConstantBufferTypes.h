@@ -7,6 +7,12 @@ struct CB_VS_vertexshader
     DirectX::XMMATRIX worldMatrix;
 };
 
+struct CB_VS_SkyVertexshader
+{
+    DirectX::XMMATRIX wvpMatrix;
+    DirectX::XMMATRIX worldMatrix;
+};
+
 struct CB_VS_vertexshader_2d
 {
     DirectX::XMMATRIX wvpMatrix;

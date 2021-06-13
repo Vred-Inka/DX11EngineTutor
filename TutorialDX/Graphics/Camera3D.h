@@ -10,6 +10,7 @@ public:
 
     const XMMATRIX& GetViewMatrix() const;
     const XMMATRIX& GetProjectionMatrix() const;
+    const XMMATRIX& GetViewProjectionMatrix() const;
     
 private:
     void UpdateMatrix() override;

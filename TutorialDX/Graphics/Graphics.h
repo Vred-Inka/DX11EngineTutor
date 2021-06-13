@@ -14,6 +14,7 @@
 #include "Light.h"
 #include "Camera2D.h"
 #include "Sprite.h"
+#include "Sky.h"
 
 class Graphics 
 {
@@ -29,6 +30,8 @@ public:
     RenderableGameObject mGameObject;
     RenderableGameObject mScene;
     Light mLight;
+
+    Sky mSky;
 
 private:
     bool InitializeDirectX(HWND hwnd);
@@ -65,7 +68,11 @@ private:
     ConstantBuffer<CB_VS_vertexshader> cb_vs_vertexshader;
     ConstantBuffer<CB_PS_light> cb_ps_light;
 
-    ConstantBuffer<CB_VS_vertexshader> mConstantBuffer;
+    PixelShader mSkyPixelShader;
+    VertexShader mSkyVertexShader;
+    ConstantBuffer<CB_VS_SkyVertexshader> cb_vs_sky;
+
+    //ConstantBuffer<CB_VS_vertexshader> mConstantBuffer;
 
     Microsoft::WRL::ComPtr<ID3D11DepthStencilView> mDepthStencilView;
     Microsoft::WRL::ComPtr<ID3D11Texture2D> mDepthStencilBuffer;
@@ -75,6 +82,7 @@ private:
 
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> mRasterizerState;
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> mRasterizerState_CullFront;
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> mRasterizerState_CullNone;
 
     Microsoft::WRL::ComPtr<ID3D11BlendState> mBlendState;
 
@@ -82,9 +90,10 @@ private:
     std::unique_ptr<DirectX::SpriteFont> mSpriteFont;
 
     Microsoft::WRL::ComPtr<ID3D11SamplerState> mSamplerState;
+    Microsoft::WRL::ComPtr<ID3D11SamplerState> mSkySamplerState;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mTexture;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mGrassTexture;
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mBrickTexture;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mCubeTexture;
 
 
     int mWindowWidth = 0;

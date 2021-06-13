@@ -25,6 +25,11 @@ const XMMATRIX & Camera3D::GetProjectionMatrix() const
     return this->mProjectionMatrix;
 }
 
+const XMMATRIX & Camera3D::GetViewProjectionMatrix() const
+{
+    return GetViewMatrix() * GetProjectionMatrix();//XMMatrixMultiply(mViewMatrix, mProjectionMatrix);
+}
+
 void Camera3D::UpdateMatrix() //Updates view matrix and also updates the movement vectors
 {
     //Calculate Camera3D rotation matrix

@@ -118,12 +118,29 @@ void Graphics::RenderFrame()
         mLight.SetPosition(lightPosition[0], lightPosition[1], lightPosition[2]);
         mLight.SetRotation(lightRotation[0], lightRotation[1], lightRotation[2]);
                
-        mScene.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
+       // mScene.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
         mGameObject.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
 
         mDeviceContext->PSSetShader(mPixelShader_nolight.GetShader(), NULL, 0);
         mLight.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
     }
+
+    mDeviceContext->VSSetShader(mSkyVertexShader.GetShader(), NULL, 0);
+    mDeviceContext->PSSetShader(mSkyPixelShader.GetShader(), NULL, 0);
+
+    mDeviceContext->PSSetSamplers(0, 1, mSkySamplerState.GetAddressOf());
+
+    mDeviceContext->RSSetState(mRasterizerState_CullNone.Get());
+    mDeviceContext->OMSetDepthStencilState(mDepthStencilState.Get(), 0);
+
+    cb_vs_sky.ApplyChanges();
+    mDeviceContext->PSSetConstantBuffers(0, 1, cb_vs_sky.GetAddressOf());
+    mSky.Draw(mDeviceContext.Get(), mCamera3D);
+
+
+
+    //mDeviceContext->IASetInputLayout(mSkyVertexShader.GetInputLayout());
+
 
     DrawTextExemple();
     
@@ -283,6 +300,11 @@ bool Graphics::InitializeDirectX(HWND hwnd)
         hr = this->mDevice->CreateRasterizerState(&rasterizerDesc_CullFront, this->mRasterizerState_CullFront.GetAddressOf());
         COM_ERROR_IF_FAILED(hr, "Failed to create rasterizer state.");
 
+        CD3D11_RASTERIZER_DESC rasterizerDesc_CullNone(D3D11_DEFAULT);
+        rasterizerDesc_CullNone.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
+        hr = this->mDevice->CreateRasterizerState(&rasterizerDesc_CullNone, this->mRasterizerState_CullNone.GetAddressOf());
+        COM_ERROR_IF_FAILED(hr, "Failed to create rasterizer state.");
+
         //Create Blend State
         D3D11_RENDER_TARGET_BLEND_DESC rtbd = { 0 };
         rtbd.BlendEnable = true;
@@ -309,6 +331,14 @@ bool Graphics::InitializeDirectX(HWND hwnd)
         sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
         sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
         hr = this->mDevice->CreateSamplerState(&sampDesc, this->mSamplerState.GetAddressOf()); //Create sampler state
+        COM_ERROR_IF_FAILED(hr, "Failed to create sampler state.");
+
+        //Create sampler description for sampler state
+        CD3D11_SAMPLER_DESC skysampDesc(D3D11_DEFAULT);
+        skysampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+        skysampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+        skysampDesc.Filter = D3D11_FILTER::D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+        hr = this->mDevice->CreateSamplerState(&sampDesc, this->mSkySamplerState.GetAddressOf()); //Create sampler state
         COM_ERROR_IF_FAILED(hr, "Failed to create sampler state.");
     }
     catch (COMException & exception)
@@ -367,6 +397,12 @@ bool Graphics::InitializeShaders()
         return false;
     }
 
+    if (!mSkyVertexShader.Initialize(this->mDevice, shaderFolder + L"SkyVertexShader.cso", layout3D, numElements3D))
+    {
+        return false;
+    }
+
+
     if (!mPixelShader_2d.Initialize(this->mDevice, shaderFolder + L"pixelshader_2d.cso"))
     {
         return false;
@@ -378,6 +414,11 @@ bool Graphics::InitializeShaders()
     }
 
     if (!mPixelShader.Initialize(this->mDevice, shaderFolder + L"pixelshader.cso"))
+    {
+        return false;
+    }
+
+    if (!mSkyPixelShader.Initialize(this->mDevice, shaderFolder + L"SkyPixelShader.cso"))
     {
         return false;
     }
@@ -401,7 +442,7 @@ bool Graphics::InitializeScene()
         hr = DirectX::CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Textures\\t2.jpg", nullptr, mTexture.GetAddressOf());
         COM_ERROR_IF_FAILED(hr, "Failed to create wic texture from file.");
 
-        hr = DirectX::CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Textures\\t6.jpg", nullptr, mBrickTexture.GetAddressOf());
+        hr = DirectX::CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Textures\\t6.jpg", nullptr, mCubeTexture.GetAddressOf());
         COM_ERROR_IF_FAILED(hr, "Failed to create wic texture from file.");
 
         //Initialize Constant Buffer(s)
@@ -424,12 +465,13 @@ bool Graphics::InitializeScene()
             //"Data\\Scenes\\room.fbx",
             //"Data\\Scenes\\full_1.fbx",
             //"Data\\Scenes\\Castle\\Castle OBJ.obj",
+            //"Data/Objects/light.fbx",
             this->mDevice.Get(), this->mDeviceContext.Get(), this->cb_vs_vertexshader))
         {
             return false;
         }
 
-        mScene.SetPosition(0.0f, 0.25f, 0.0f);
+        //mScene.SetPosition(0.0f, 0.25f, 0.0f);
 
 
         if (!mGameObject.Initialize(
@@ -456,6 +498,12 @@ bool Graphics::InitializeScene()
         cb_ps_light.data.ambientLightStrength = 0.5f;
         cb_ps_light.data.dynamicLightColor.x  = 1.0f;
         mLight.SetPosition(5.0f, 12.0f, -15.0f);
+
+        hr = this->cb_vs_sky.Initialize(this->mDevice.Get(), this->mDeviceContext.Get());
+        COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
+
+       if (!mSky.Initialize(mDevice.Get(), L"Data/Textures/sky.dds", 5000.0f, cb_vs_sky))
+           return false;
 
         
         if (!mSprite.Initialize(mDevice.Get(), mDeviceContext.Get(), 256, 256, "Data/Textures/mask_2.png", cb_vs_vertexshader_2d))
@@ -540,7 +588,7 @@ bool Graphics::CreateTexture()
         hr = CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Textures\\t4.jpg", nullptr, mGrassTexture.GetAddressOf());
         COM_ERROR_IF_FAILED(hr, "Failed to create wic texture from file.");
 
-        hr = CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Textures\\t6.jpg", nullptr, mBrickTexture.GetAddressOf());
+        hr = CreateWICTextureFromFile(this->mDevice.Get(), L"Data\\Textures\\t6.jpg", nullptr, mCubeTexture.GetAddressOf());
         COM_ERROR_IF_FAILED(hr, "Failed to create wic texture from file.");
     }
     catch (COMException& exception)
