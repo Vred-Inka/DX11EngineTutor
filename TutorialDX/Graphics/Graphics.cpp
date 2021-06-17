@@ -31,10 +31,18 @@ void Graphics::RenderFrame()
 {
     //cb_ps_light.data.dynamicLightColor = mLight.mLightColor;
     //cb_ps_light.data.dynamicLightStrength = mLight.mLightStrength;
-    cb_ps_light.data.dynamicLightPosition = mLight.GetPositionFloat3();
-    cb_ps_light.data.mDynamicLightAttenuation_a = mLight.mAttenuation_a;
-    cb_ps_light.data.mDynamicLightAttenuation_b = mLight.mAttenuation_b;
-    cb_ps_light.data.mDynamicLightAttenuation_c = mLight.mAttenuation_c;
+    cb_ps_light.data.dynamicLightPosition = mLights[0].GetPositionFloat3();
+    cb_ps_light.data.mDynamicLightAttenuation_a = mLights[0].mAttenuation_a;
+    cb_ps_light.data.mDynamicLightAttenuation_b = mLights[0].mAttenuation_b;
+    cb_ps_light.data.mDynamicLightAttenuation_c = mLights[0].mAttenuation_c;
+
+
+    //cb_ps_light.data.dirLightAmbient = XMFLOAT3(0.2f, 0.2f, 0.2f);
+    //cb_ps_light.data.dirlightDiffuse = XMFLOAT3(0.5f, 0.5f, 0.5f);
+    //cb_ps_light.data.dirLightSpectular = XMFLOAT3(0.5f, 0.5f, 0.5f);
+    //cb_ps_light.data.dirLightDirection = XMFLOAT3(0.57735f, 0.57735f, 0.57735f);
+
+
     cb_ps_light.ApplyChanges();
     mDeviceContext->PSSetConstantBuffers(0, 1, cb_ps_light.GetAddressOf());
 
@@ -65,8 +73,8 @@ void Graphics::RenderFrame()
     float cameraPosition[3] = { cameraPos.x, cameraPos.y, cameraPos.z };
     float cameraRotation[3] = { cameraRot.x, cameraRot.y, cameraRot.z };
 
-    XMFLOAT3 lightPos = mLight.GetPositionFloat3();
-    XMFLOAT3 lightRot = mLight.GetRotationFloat3();
+    XMFLOAT3 lightPos = mLights[0].GetPositionFloat3();
+    XMFLOAT3 lightRot = mLights[0].GetRotationFloat3();
     float lightPosition[3] = { lightPos.x, lightPos.y, lightPos.z };
     float lightRotation[3] = { lightRot.x, lightRot.y, lightRot.z };
 
@@ -115,29 +123,23 @@ void Graphics::RenderFrame()
         mGameObject.SetPosition(goPosition[0], goPosition[1], goPosition[2]);
         mGameObject.SetRotation(goRotation[0], goRotation[1], goRotation[2]);
 
-        mLight.SetPosition(lightPosition[0], lightPosition[1], lightPosition[2]);
-        mLight.SetRotation(lightRotation[0], lightRotation[1], lightRotation[2]);
+        mLights[0].SetPosition(lightPosition[0], lightPosition[1], lightPosition[2]);
+        mLights[0].SetRotation(lightRotation[0], lightRotation[1], lightRotation[2]);
                
        // mScene.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
         mGameObject.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
 
         mDeviceContext->PSSetShader(mPixelShader_nolight.GetShader(), NULL, 0);
-        mLight.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
+
+        for (Light& light : mLights)
+        {
+            light.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
+        }
     }
 
-    mDeviceContext->VSSetShader(mSkyVertexShader.GetShader(), NULL, 0);
-    mDeviceContext->PSSetShader(mSkyPixelShader.GetShader(), NULL, 0);
 
-    mDeviceContext->PSSetSamplers(0, 1, mSkySamplerState.GetAddressOf());
-
-    mDeviceContext->RSSetState(mRasterizerState_CullNone.Get());
-    mDeviceContext->OMSetDepthStencilState(mDepthStencilState.Get(), 0);
-
-    cb_vs_sky.ApplyChanges();
-    mDeviceContext->PSSetConstantBuffers(0, 1, cb_vs_sky.GetAddressOf());
     mSky.Draw(mDeviceContext.Get(), mCamera3D);
-
-
+    
 
     //mDeviceContext->IASetInputLayout(mSkyVertexShader.GetInputLayout());
 
@@ -300,11 +302,6 @@ bool Graphics::InitializeDirectX(HWND hwnd)
         hr = this->mDevice->CreateRasterizerState(&rasterizerDesc_CullFront, this->mRasterizerState_CullFront.GetAddressOf());
         COM_ERROR_IF_FAILED(hr, "Failed to create rasterizer state.");
 
-        CD3D11_RASTERIZER_DESC rasterizerDesc_CullNone(D3D11_DEFAULT);
-        rasterizerDesc_CullNone.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
-        hr = this->mDevice->CreateRasterizerState(&rasterizerDesc_CullNone, this->mRasterizerState_CullNone.GetAddressOf());
-        COM_ERROR_IF_FAILED(hr, "Failed to create rasterizer state.");
-
         //Create Blend State
         D3D11_RENDER_TARGET_BLEND_DESC rtbd = { 0 };
         rtbd.BlendEnable = true;
@@ -331,14 +328,6 @@ bool Graphics::InitializeDirectX(HWND hwnd)
         sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
         sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
         hr = this->mDevice->CreateSamplerState(&sampDesc, this->mSamplerState.GetAddressOf()); //Create sampler state
-        COM_ERROR_IF_FAILED(hr, "Failed to create sampler state.");
-
-        //Create sampler description for sampler state
-        CD3D11_SAMPLER_DESC skysampDesc(D3D11_DEFAULT);
-        skysampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-        skysampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-        skysampDesc.Filter = D3D11_FILTER::D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
-        hr = this->mDevice->CreateSamplerState(&sampDesc, this->mSkySamplerState.GetAddressOf()); //Create sampler state
         COM_ERROR_IF_FAILED(hr, "Failed to create sampler state.");
     }
     catch (COMException & exception)
@@ -397,12 +386,6 @@ bool Graphics::InitializeShaders()
         return false;
     }
 
-    if (!mSkyVertexShader.Initialize(this->mDevice, shaderFolder + L"SkyVertexShader.cso", layout3D, numElements3D))
-    {
-        return false;
-    }
-
-
     if (!mPixelShader_2d.Initialize(this->mDevice, shaderFolder + L"pixelshader_2d.cso"))
     {
         return false;
@@ -417,12 +400,7 @@ bool Graphics::InitializeShaders()
     {
         return false;
     }
-
-    if (!mSkyPixelShader.Initialize(this->mDevice, shaderFolder + L"SkyPixelShader.cso"))
-    {
-        return false;
-    }
-
+       
     if (!mPixelShader_nolight.Initialize(this->mDevice, shaderFolder + L"pixelshader_nolight.cso"))
     {
         return false;
@@ -490,19 +468,56 @@ bool Graphics::InitializeScene()
         }
 
         mGameObject.SetPosition(10.0f, 0.0f, -12.0f);
-     
-        if (!mLight.Initialize(this->mDevice.Get(), this->mDeviceContext.Get(), this->cb_vs_vertexshader))
-            return false;
 
-        cb_ps_light.data.dynamicLightStrength = 100.0f;
+        for (int i = 0; i < 5; i++)
+        {
+            Light pointLight;
+            pointLight.mLightColor = XMFLOAT3(i*0.1, 1.0f - i * 0.1f, 0.2f* i);
+            mLights.push_back(pointLight);
+            if (!mLights[i].Initialize(this->mDevice.Get(), this->mDeviceContext.Get(), this->cb_vs_vertexshader))
+                return false;            
+            mLights[i].SetPosition(5*i + 5.0f,  7.0f, 10*i + -15.0f);
+        }    
+
+        cb_ps_light.data.gDirLight.Ambient = mLights[0].mAttenuation_c;
+        cb_ps_light.data.mDynamicLightAttenuation_c = mLights[0].mAttenuation_c;
+        cb_ps_light.data.mDynamicLightAttenuation_c = mLights[0].mAttenuation_c;
+
+        mDirLight.Ambient = cb_ps_light.data.gDirLight.Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+        mDirLight.Diffuse = cb_ps_light.data.gDirLight.Diffuse = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+        mDirLight.Specular = cb_ps_light.data.gDirLight.Specular = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+        mDirLight.Direction = cb_ps_light.data.gDirLight.Direction = XMFLOAT3(0.57735f, -0.57735f, 0.57735f);
+        // Point light--position is changed every frame to animate
+        // in UpdateScene function.
+        mPointLight.Ambient = cb_ps_light.data.gPointLight.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+        mPointLight.Diffuse = cb_ps_light.data.gPointLight.Diffuse = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
+        mPointLight.Specular = cb_ps_light.data.gPointLight.Specular = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
+        mPointLight.Att = cb_ps_light.data.gPointLight.Att = XMFLOAT3(0.0f, 0.1f, 0.0f);
+        mPointLight.Range = cb_ps_light.data.gPointLight.Range = 25.0f;
+        // Spot light--position and direction changed every frame to
+        // animate in UpdateScene function.
+        mSpotLight.Ambient = cb_ps_light.data.gSpotLight.Ambient = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+        mSpotLight.Diffuse = cb_ps_light.data.gSpotLight.Diffuse = XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f);
+        mSpotLight.Specular =  cb_ps_light.data.gSpotLight.Specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+        mSpotLight.Att = cb_ps_light.data.gSpotLight.Att = XMFLOAT3(1.0f, 0.0f, 0.0f);
+        mSpotLight.Spot = cb_ps_light.data.gSpotLight.Spot = 96.0f;
+        mSpotLight.Range = cb_ps_light.data.gSpotLight.Range = 10000.0f;
+
+        mLandMat.Ambient =  XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
+        mLandMat.Diffuse = XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
+        mLandMat.Specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+        mWavesMat.Ambient = XMFLOAT4(0.137f, 0.42f, 0.556f, 1.0f);
+        mWavesMat.Diffuse = XMFLOAT4(0.137f, 0.42f, 0.556f, 1.0f);
+        mWavesMat.Specular = XMFLOAT4(0.8f, 0.8f, 0.8f, 96.0f);
+
+        cb_ps_light.data.dynamicLightStrength = 500.0f;
         cb_ps_light.data.ambientLightStrength = 0.5f;
         cb_ps_light.data.dynamicLightColor.x  = 1.0f;
-        mLight.SetPosition(5.0f, 12.0f, -15.0f);
+        mLights[0].SetPosition(5.0f, 12.0f, -15.0f);
 
-        hr = this->cb_vs_sky.Initialize(this->mDevice.Get(), this->mDeviceContext.Get());
-        COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
-       if (!mSky.Initialize(mDevice.Get(), L"Data/Textures/sky.dds", 5000.0f, cb_vs_sky))
+
+       if (!mSky.Initialize(mDevice.Get(), mDeviceContext.Get(), 5000.0f))
            return false;
 
         

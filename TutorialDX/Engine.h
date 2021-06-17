@@ -11,6 +11,10 @@ public:
     void Update();
     void RenderFrame();
 
+    float mTheta;
+    float mPhi;
+    float mRadius;
+
 private:
     Timer mTimer;
 };

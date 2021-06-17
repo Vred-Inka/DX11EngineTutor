@@ -31,5 +31,14 @@ struct CB_PS_light
     float mDynamicLightAttenuation_b;
     float mDynamicLightAttenuation_c;
 
+    DirectX::XMFLOAT3 dirLightAmbient;
+    DirectX::XMFLOAT3 dirlightDiffuse;
+    DirectX::XMFLOAT3 dirLightSpectular;
+    DirectX::XMFLOAT3 dirLightDirection;
+
+    DirectionalLight gDirLight;
+    PointLight gPointLight;
+    SpotLight gSpotLight;
+    DirectX::XMFLOAT3  gEyePosW;
 };
 

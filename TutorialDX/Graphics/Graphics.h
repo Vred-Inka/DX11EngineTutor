@@ -29,7 +29,15 @@ public:
     Sprite mSprite;
     RenderableGameObject mGameObject;
     RenderableGameObject mScene;
-    Light mLight;
+    std::vector<Light> mLights;
+
+    DirectionalLight mDirLight;
+    PointLight mPointLight;
+    SpotLight mSpotLight;
+    Material mLandMat;
+    Material mWavesMat;
+
+    XMFLOAT3 mEyePosW;
 
     Sky mSky;
 
@@ -68,12 +76,6 @@ private:
     ConstantBuffer<CB_VS_vertexshader> cb_vs_vertexshader;
     ConstantBuffer<CB_PS_light> cb_ps_light;
 
-    PixelShader mSkyPixelShader;
-    VertexShader mSkyVertexShader;
-    ConstantBuffer<CB_VS_SkyVertexshader> cb_vs_sky;
-
-    //ConstantBuffer<CB_VS_vertexshader> mConstantBuffer;
-
     Microsoft::WRL::ComPtr<ID3D11DepthStencilView> mDepthStencilView;
     Microsoft::WRL::ComPtr<ID3D11Texture2D> mDepthStencilBuffer;
     Microsoft::WRL::ComPtr<ID3D11DepthStencilState> mDepthStencilState;
@@ -82,7 +84,6 @@ private:
 
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> mRasterizerState;
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> mRasterizerState_CullFront;
-    Microsoft::WRL::ComPtr<ID3D11RasterizerState> mRasterizerState_CullNone;
 
     Microsoft::WRL::ComPtr<ID3D11BlendState> mBlendState;
 
@@ -90,7 +91,6 @@ private:
     std::unique_ptr<DirectX::SpriteFont> mSpriteFont;
 
     Microsoft::WRL::ComPtr<ID3D11SamplerState> mSamplerState;
-    Microsoft::WRL::ComPtr<ID3D11SamplerState> mSkySamplerState;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mTexture;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mGrassTexture;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mCubeTexture;

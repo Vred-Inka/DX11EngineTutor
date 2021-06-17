@@ -80,7 +80,7 @@ void Engine::Update()
     }
 
     mgfx.mGameObject.AdjustRotation( 0.0f, 0.001f*dt,  0.0f);
-    XMFLOAT3 goPos = mgfx.mLight.GetRotationFloat3();
+    XMFLOAT3 goPos = mgfx.mLights[0].GetRotationFloat3();
     float goPosition[3] = { goPos.x, goPos.y, goPos.z };
 
     float r = 30;
@@ -92,14 +92,7 @@ void Engine::Update()
 
     //mgfx.mLight.AdjustPosition(0.0045f * dt, 0.0f, 0.005f * goPos.x * dt );
     //mgfx.mLight.AdjustPosition(0.0f, 0.0f, 0.05f * std::pow(t,3) - 0.01 * std::pow(t,4) );
-    mgfx.mLight.SetPosition(r * std::cos(step), 5.0f, r * std::sin(step));
-
-    if (mgfx.mLight.GetPositionFloat3().x > 1000.0 || mgfx.mLight.GetPositionFloat3().y > 1000 ||
-        mgfx.mLight.GetPositionFloat3().y > 30.0 || mgfx.mLight.GetPositionFloat3().y < 0.0||
-        mgfx.mLight.GetPositionFloat3().z > 30.0 || mgfx.mLight.GetPositionFloat3().z < -30.0)
-    {
-       // mgfx.mLight.SetPosition(5.0f, 5.0f, 0.0f);
-    }
+    mgfx.mLights[0].SetPosition(r * std::cos(step), 5.0f, r * std::sin(step));
 
     step += 0.001f;
     if (step > 6.3f)
@@ -107,11 +100,32 @@ void Engine::Update()
         step = 0.0f;
     }
 
+
+    float x = mRadius * sinf(mPhi)*cosf(mTheta);
+    float z = mRadius * sinf(mPhi)*sinf(mTheta);
+    float y = mRadius * cosf(mPhi);
+    mgfx.mEyePosW = mgfx.mCamera3D.GetPositionFloat3();//XMFLOAT3(x, y, z);
+    // Build the view matrix.
+    XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
+    XMVECTOR target = XMVectorZero();
+    XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    /* ...Irrelevant code omitted ... */
+    // Circle light over the land surface.
+    mgfx.mPointLight.Position.x = 70.0f*cosf(0.2f*mTimer.TotalTime());
+    mgfx.mPointLight.Position.z = 70.0f*sinf(0.2f*mTimer.TotalTime());
+    mgfx.mPointLight.Position.y = 50.0f;// MathHelper::Max(GetHillHeight(mgfx.mPointLight.Position.x, mgfx.mPointLight.Position.z), -3.0f) + 10.0f;
+    // The spotlight takes on the camera position and is aimed in the
+    // same direction the camera is looking. In this way, it looks
+    // like we are holding a flashlight.
+    mgfx.mSpotLight.Position = mgfx.mEyePosW;
+    XMStoreFloat3(&mgfx.mSpotLight.Direction,
+        XMVector3Normalize(target - pos));
+
     float cameraSpeed = 0.006f;
 
     if (mKeyboard.KeyIsPressed(VK_SHIFT))
     {
-        cameraSpeed = 0.3f;
+        cameraSpeed = 0.6f;
     }
 
     if (mKeyboard.KeyIsPressed('W'))
@@ -143,8 +157,8 @@ void Engine::Update()
     {
         XMVECTOR lightPosition = this->mgfx.mCamera3D.GetPositionVector();
         lightPosition += this->mgfx.mCamera3D.GetForwardVector();
-        this->mgfx.mLight.SetPosition(lightPosition);
-        this->mgfx.mLight.SetRotation(this->mgfx.mCamera3D.GetRotationFloat3());
+        this->mgfx.mLights[0].SetPosition(lightPosition);
+        this->mgfx.mLights[0].SetRotation(this->mgfx.mCamera3D.GetRotationFloat3());
     }
 
     if (mKeyboard.KeyIsPressed(VK_UP))

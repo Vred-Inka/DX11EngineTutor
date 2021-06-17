@@ -10,24 +10,26 @@ class Camera3D;
 class Sky 
 {
 public:
-    bool Initialize(ID3D11Device* device, const std::wstring& cubemapFilename, float skySphereRadius, ConstantBuffer<CB_VS_SkyVertexshader>& cb_vs_vertexshader);
-
-    ID3D11ShaderResourceView* CubeMapSRV();
-
+    bool Initialize(ID3D11Device* device, ID3D11DeviceContext * deviceContext, float skySphereRadius);
     void Draw(ID3D11DeviceContext* dc, const Camera3D& camera);
 
 private:
-   ConstantBuffer<CB_VS_SkyVertexshader>* mSkyVertexShader = nullptr;
+    ConstantBuffer<CB_VS_SkyVertexshader> mSkyConstantBuffer;
     IndexBuffer mSkyIndexBuffer;
     VertexBuffer<Vertex3D> mSkyVertexBuffer;
 
-   //ID3D11Buffer* mVB;
-  //  ID3D11Buffer* mIB;
+    PixelShader mSkyPixelShader;
+    VertexShader mSkyVertexShader;
 
+    Microsoft::WRL::ComPtr<ID3D11Resource> mCubeTexture = nullptr;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mCubeTextureView = nullptr;
 
-    Microsoft::WRL::ComPtr<ID3D11Resource> mTexture = nullptr;
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mTextureView = nullptr;
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mCubeMapSRV;
+    Microsoft::WRL::ComPtr <ID3D11Device> mDevice = nullptr;
+    Microsoft::WRL::ComPtr <ID3D11DeviceContext> mDeviceContext = nullptr;
+
+    Microsoft::WRL::ComPtr<ID3D11SamplerState> mSkySamplerState;
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> mRasterizerState_CullNone;
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilState> mDepthStencilState;
 
     UINT mIndexCount;
 };

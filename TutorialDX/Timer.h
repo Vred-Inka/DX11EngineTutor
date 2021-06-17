@@ -7,8 +7,26 @@ public:
     Timer();
     double GetMilisecondsElapsed();
     void Restart();
-    bool Stop();
-    bool Start();
+
+    float TotalTime()const;  // in seconds
+    float DeltaTime()const; // in seconds
+
+    void Reset(); // Call before message loop.
+    bool Start(); // Call when unpaused.
+    bool Stop();  // Call when paused.
+    void Tick();  // Call every frame.
+
+private:
+    double mSecondsPerCount;
+    double mDeltaTime;
+
+    __int64 mBaseTime;
+    __int64 mPausedTime;
+    __int64 mStopTime;
+    __int64 mPrevTime;
+    __int64 mCurrTime;
+
+    bool mStopped;
 
 private:
     bool mIsRunnung = false;
