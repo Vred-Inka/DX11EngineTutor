@@ -36,14 +36,6 @@ void Graphics::RenderFrame()
     cb_ps_light.data.mDynamicLightAttenuation_b = mLights[0].mAttenuation_b;
     cb_ps_light.data.mDynamicLightAttenuation_c = mLights[0].mAttenuation_c;
 
-
-    //cb_ps_light.data.dirLightAmbient = XMFLOAT3(0.2f, 0.2f, 0.2f);
-    //cb_ps_light.data.dirlightDiffuse = XMFLOAT3(0.5f, 0.5f, 0.5f);
-    //cb_ps_light.data.dirLightSpectular = XMFLOAT3(0.5f, 0.5f, 0.5f);
-    //cb_ps_light.data.dirLightDirection = XMFLOAT3(0.57735f, 0.57735f, 0.57735f);
-
-
-    cb_ps_light.ApplyChanges();
     mDeviceContext->PSSetConstantBuffers(0, 1, cb_ps_light.GetAddressOf());
 
     float bgcolor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -83,8 +75,6 @@ void Graphics::RenderFrame()
     float goPosition[3] = { goPos.x, goPos.y, goPos.z };
     float goRotation[3] = { goRot.x, goRot.y, goRot.z };
 
-
-
     static int counter = 0;
     // Start the Dear ImGui frame
     ImGui_ImplDX11_NewFrame();
@@ -116,6 +106,14 @@ void Graphics::RenderFrame()
     ImGui::DragFloat3("Light rotation", lightRotation, 0.01f, -10.0f, 10.0f);
     ImGui::End();
 
+    ImGui::Begin("Lights");
+    DirectionalLightUpdate();
+    MaterialUpdate();
+    PointLightUpdate();
+    SpotLightUpdate();
+    cb_ps_light.ApplyChanges();
+    ImGui::End();
+
     {
         mCamera3D.SetPosition(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
         mCamera3D.SetRotation(cameraRotation[0], cameraRotation[1], cameraRotation[2]);
@@ -126,7 +124,7 @@ void Graphics::RenderFrame()
         mLights[0].SetPosition(lightPosition[0], lightPosition[1], lightPosition[2]);
         mLights[0].SetRotation(lightRotation[0], lightRotation[1], lightRotation[2]);
                
-       // mScene.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
+        mScene.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
         mGameObject.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
 
         mDeviceContext->PSSetShader(mPixelShader_nolight.GetShader(), NULL, 0);
@@ -137,11 +135,7 @@ void Graphics::RenderFrame()
         }
     }
 
-
     mSky.Draw(mDeviceContext.Get(), mCamera3D);
-    
-
-    //mDeviceContext->IASetInputLayout(mSkyVertexShader.GetInputLayout());
 
 
     DrawTextExemple();
@@ -158,6 +152,164 @@ void Graphics::RenderFrame()
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
     mSwapChain->Present(0, NULL);
+}
+
+void Graphics::DirectionalLightUpdate()
+{   
+    static bool flags[4] = { true, true, true, true };
+
+    ImGui::Checkbox("##0", &flags[0]);
+    ImGui::SameLine();
+    ImGui::Text("Directional Light");
+
+    if (flags[0])
+    {
+        XMFLOAT4 disabled4(0.0f, 0.0f, 0.0f, 0.0f);
+        static XMFLOAT4 ambient(mDirLight.Ambient.x, mDirLight.Ambient.y, mDirLight.Ambient.z, mDirLight.Ambient.w);
+        static XMFLOAT4 diffuse(mDirLight.Diffuse.x, mDirLight.Diffuse.y, mDirLight.Diffuse.z, mDirLight.Diffuse.w);
+        static XMFLOAT4 specular(mDirLight.Specular.x, mDirLight.Specular.y, mDirLight.Specular.z, mDirLight.Specular.w);
+
+        ImGui::Checkbox("##1", &flags[1]);
+        ImGui::SameLine();
+        ImGui::DragFloat3("Directional Ambient", &ambient.x, 0.01f, 0.0f, 1.0f);
+        mDirLight.Ambient = !flags[1] ? disabled4 : ambient;
+
+        ImGui::Checkbox("##2", &flags[2]);
+        ImGui::SameLine();
+        ImGui::DragFloat3("Directional Diffuse", &diffuse.x, 0.01f, 0.0f, 1.0f);
+        mDirLight.Diffuse = !flags[2] ? disabled4 : diffuse;
+
+        ImGui::Checkbox("##3", &flags[3]);
+        ImGui::SameLine();
+        ImGui::DragFloat3("Directional Specular", &specular.x, 0.01f, 0.0f, 1.0f);
+        mDirLight.Specular = !flags[3] ? disabled4 : specular;
+
+        ImGui::DragFloat3("Directional Direction", &mDirLight.Direction.x, 0.01f, -1000.0f, 1000.0f);
+    }
+
+    ImGui::Separator();
+
+    mDirLight.IsEnable = flags[0];
+    cb_ps_light.data.gDirLight = mDirLight;
+}
+
+void Graphics::PointLightUpdate()
+{
+    static bool flags[5] = { true, true, true, true, true };
+
+    ImGui::Checkbox("##10", &flags[0]);
+    ImGui::SameLine();
+    ImGui::Text("Point Light");
+
+    if (flags[0])
+    {
+        XMFLOAT4 disabled4(0.0f, 0.0f, 0.0f, 0.0f);
+        XMFLOAT3 disabled3(0.0f, 0.0f, 0.0f);
+        static XMFLOAT4 ambient(mPointLight.Ambient.x, mPointLight.Ambient.y, mPointLight.Ambient.z, mPointLight.Ambient.w);
+        static XMFLOAT4 diffuse(mPointLight.Diffuse.x, mPointLight.Diffuse.y, mPointLight.Diffuse.z, mPointLight.Diffuse.w);
+        static XMFLOAT4 specular(mPointLight.Specular.x, mPointLight.Specular.y, mPointLight.Specular.z, mPointLight.Specular.w);
+        static XMFLOAT3 att(mPointLight.Att.x, mPointLight.Att.y, mPointLight.Att.z);
+
+        ImGui::Checkbox("##11", &flags[1]);
+        ImGui::SameLine();
+        ImGui::DragFloat3("Point Ambient", &ambient.x, 0.01f, 0.0f, 1.0f);
+        mPointLight.Ambient = !flags[1] ? disabled4 : ambient;
+
+        ImGui::Checkbox("##12", &flags[2]);
+        ImGui::SameLine();
+        ImGui::DragFloat3("Point Diffuse", &diffuse.x, 0.01f, 0.0f, 1.0f);
+        mPointLight.Diffuse = !flags[2] ? disabled4 : diffuse;
+
+        ImGui::Checkbox("##13", &flags[3]);
+        ImGui::SameLine();
+        ImGui::DragFloat3("Point Specular", &specular.x, 0.01f, 0.0f, 1.0f);
+        mPointLight.Specular = !flags[3] ? disabled4 : specular;
+
+        ImGui::Checkbox("##14", &flags[4]);
+        ImGui::SameLine();
+        ImGui::DragFloat3("Point Att", &att.x, 0.01f, 0.0f, 1.0f);
+        mPointLight.Att = !flags[4] ? disabled3 : att;
+
+        //mPointLight.Position = mLights[0].GetPositionFloat3();
+        ImGui::DragFloat3("Point Position", &mPointLight.Position.x, 0.1f, -1000.0f, 1000.0f);
+        ImGui::DragFloat("Point Range", &mPointLight.Range, 0.1f, -1000.0f, 1000.0f);
+    }
+    ImGui::Separator();
+
+    mPointLight.IsEnable = flags[0];
+    cb_ps_light.data.gPointLight = mPointLight;
+}
+
+void Graphics::SpotLightUpdate()
+{
+    static bool flags[6] = { true, true, true, true, true };
+
+    ImGui::Checkbox("##20", &flags[0]);
+    ImGui::SameLine();
+    ImGui::Text("Spot Light");
+
+    if (flags[0])
+    {
+        XMFLOAT4 disabled4(0.0f, 0.0f, 0.0f, 0.0f);
+        XMFLOAT3 disabled3(0.0f, 0.0f, 0.0f);
+        static XMFLOAT4 ambient(mSpotLight.Ambient.x, mSpotLight.Ambient.y, mSpotLight.Ambient.z, mSpotLight.Ambient.w);
+        static XMFLOAT4 diffuse(mSpotLight.Diffuse.x, mSpotLight.Diffuse.y, mSpotLight.Diffuse.z, mSpotLight.Diffuse.w);
+        static XMFLOAT4 specular(mSpotLight.Specular.x, mSpotLight.Specular.y, mSpotLight.Specular.z, mSpotLight.Specular.w);
+        static XMFLOAT3 att(mSpotLight.Att.x, mSpotLight.Att.y, mSpotLight.Att.z);
+
+        ImGui::Checkbox("##21", &flags[1]);
+        ImGui::SameLine();
+        ImGui::DragFloat3("Spot Ambient", &ambient.x, 0.01f, 0.0f, 1.0f);
+        mSpotLight.Ambient = !flags[1] ? disabled4 : ambient;
+
+        ImGui::Checkbox("##22", &flags[2]);
+        ImGui::SameLine();
+        ImGui::DragFloat3("Spot Diffuse", &diffuse.x, 0.01f, 0.0f, 1.0f);
+        mSpotLight.Diffuse = !flags[2] ? disabled4 : diffuse;
+
+        ImGui::Checkbox("##23", &flags[3]);
+        ImGui::SameLine();
+        ImGui::DragFloat3("Spot Specular", &specular.x, 0.01f, 0.0f, 1.0f);
+        mSpotLight.Specular = !flags[3] ? disabled4 : specular;
+
+        ImGui::Checkbox("##24", &flags[4]);
+        ImGui::SameLine();
+        ImGui::DragFloat3("Spot Att", &att.x, 0.01f, 0.0f, 1.0f);
+        mSpotLight.Att = !flags[4] ? disabled3 : att;
+
+       
+     
+        XMFLOAT3 campos = mLights[0].GetPositionFloat3();
+        mSpotLight.Position = campos;
+        ImGui::DragFloat3("Spot Position", &mSpotLight.Position.x, 0.1f, -10000.0f, 10000.0f);
+
+        XMVECTOR pos = XMVectorSet(campos.x, campos.y, campos.z, 1.0f);
+        XMVECTOR target = XMVectorZero();
+        mSpotLight.Position = mEyePosW;
+        XMStoreFloat3(&mSpotLight.Direction,
+            XMVector3Normalize(target - pos));
+        ImGui::DragFloat3("Spot Direction", &mSpotLight.Direction.x, 0.1f, -1000.0f, 1000.0f);
+
+
+        ImGui::DragFloat("Spot Spot", &mSpotLight.Spot, 0.1f, -10000, 100000.0f);
+        ImGui::DragFloat("Spot Range", &mSpotLight.Range, 0.1f, -100000.0f, 100000.0f);
+    }
+    ImGui::Separator();
+
+    mSpotLight.IsEnable = flags[0];
+    cb_ps_light.data.gSpotLight = mSpotLight;
+}
+
+void Graphics::MaterialUpdate()
+{
+    mLandMat.Ambient = XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
+    mLandMat.Diffuse = XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
+    mLandMat.Specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+    cb_ps_light.data.gMaterial = mLandMat;
+
+    mWavesMat.Ambient = XMFLOAT4(0.137f, 0.42f, 0.556f, 1.0f);
+    mWavesMat.Diffuse = XMFLOAT4(0.137f, 0.42f, 0.556f, 1.0f);
+    mWavesMat.Specular = XMFLOAT4(0.8f, 0.8f, 0.8f, 96.0f);
 }
 
 void Graphics::DrawTextExemple()
@@ -469,53 +621,52 @@ bool Graphics::InitializeScene()
 
         mGameObject.SetPosition(10.0f, 0.0f, -12.0f);
 
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i <1; i++)
         {
             Light pointLight;
             pointLight.mLightColor = XMFLOAT3(i*0.1, 1.0f - i * 0.1f, 0.2f* i);
             mLights.push_back(pointLight);
             if (!mLights[i].Initialize(this->mDevice.Get(), this->mDeviceContext.Get(), this->cb_vs_vertexshader))
                 return false;            
-            mLights[i].SetPosition(5*i + 5.0f,  7.0f, 10*i + -15.0f);
+            //mLights[i].SetPosition(5*i + 5.0f,  7.0f, 10*i + -15.0f);
         }    
 
-        cb_ps_light.data.gDirLight.Ambient = mLights[0].mAttenuation_c;
-        cb_ps_light.data.mDynamicLightAttenuation_c = mLights[0].mAttenuation_c;
-        cb_ps_light.data.mDynamicLightAttenuation_c = mLights[0].mAttenuation_c;
+        mSimpleLight.dir = XMFLOAT3(0.25f, 0.5f, -1.0f);
+        mSimpleLight.ambient = XMFLOAT4(0.2f, 0.0f, 0.2f, 1.0f);
+        mSimpleLight.diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+        cb_ps_light.data.gSimpleLight = mSimpleLight;
 
-        mDirLight.Ambient = cb_ps_light.data.gDirLight.Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
-        mDirLight.Diffuse = cb_ps_light.data.gDirLight.Diffuse = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
-        mDirLight.Specular = cb_ps_light.data.gDirLight.Specular = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
-        mDirLight.Direction = cb_ps_light.data.gDirLight.Direction = XMFLOAT3(0.57735f, -0.57735f, 0.57735f);
+        mDirLight.Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+        mDirLight.Diffuse = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+        mDirLight.Specular = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+        mDirLight.Direction = XMFLOAT3(0.57735f, -0.57735f, 0.57735f);
+        cb_ps_light.data.gDirLight = mDirLight;
+
         // Point light--position is changed every frame to animate
-        // in UpdateScene function.
-        mPointLight.Ambient = cb_ps_light.data.gPointLight.Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
-        mPointLight.Diffuse = cb_ps_light.data.gPointLight.Diffuse = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
-        mPointLight.Specular = cb_ps_light.data.gPointLight.Specular = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
-        mPointLight.Att = cb_ps_light.data.gPointLight.Att = XMFLOAT3(0.0f, 0.1f, 0.0f);
-        mPointLight.Range = cb_ps_light.data.gPointLight.Range = 25.0f;
+ // in UpdateScene function.
+        mPointLight.Ambient =  XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+        mPointLight.Diffuse =  XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
+        mPointLight.Specular =  XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
+        mPointLight.Att =  XMFLOAT3(0.0f, 0.1f, 0.0f);
+        mPointLight.Range =  20.0f;
+        mPointLight.Position = XMFLOAT3(32.0f, 5.0f, -19.0f);
+        cb_ps_light.data.gPointLight = mPointLight;
         // Spot light--position and direction changed every frame to
         // animate in UpdateScene function.
-        mSpotLight.Ambient = cb_ps_light.data.gSpotLight.Ambient = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-        mSpotLight.Diffuse = cb_ps_light.data.gSpotLight.Diffuse = XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f);
-        mSpotLight.Specular =  cb_ps_light.data.gSpotLight.Specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-        mSpotLight.Att = cb_ps_light.data.gSpotLight.Att = XMFLOAT3(1.0f, 0.0f, 0.0f);
-        mSpotLight.Spot = cb_ps_light.data.gSpotLight.Spot = 96.0f;
-        mSpotLight.Range = cb_ps_light.data.gSpotLight.Range = 10000.0f;
+        mSpotLight.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+        mSpotLight.Diffuse = XMFLOAT4(1.0f, 1.0f, 0.1f, 1.0f);
+        mSpotLight.Specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+        mSpotLight.Att =  XMFLOAT3(0.7f, 0.1f, 0.1f);
+        //mSpotLight.Position = XMFLOAT3(23.0f, 5.0f, -25.0f);
+        mSpotLight.Spot = 96.0f;
+        mSpotLight.Range = 10000.0f;
+        cb_ps_light.data.gSpotLight = mSpotLight;
 
-        mLandMat.Ambient =  XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
-        mLandMat.Diffuse = XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
-        mLandMat.Specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
-        mWavesMat.Ambient = XMFLOAT4(0.137f, 0.42f, 0.556f, 1.0f);
-        mWavesMat.Diffuse = XMFLOAT4(0.137f, 0.42f, 0.556f, 1.0f);
-        mWavesMat.Specular = XMFLOAT4(0.8f, 0.8f, 0.8f, 96.0f);
-
-        cb_ps_light.data.dynamicLightStrength = 500.0f;
+        cb_ps_light.data.dynamicLightStrength = 10.0f;
         cb_ps_light.data.ambientLightStrength = 0.5f;
         cb_ps_light.data.dynamicLightColor.x  = 1.0f;
+
         mLights[0].SetPosition(5.0f, 12.0f, -15.0f);
-
-
 
        if (!mSky.Initialize(mDevice.Get(), mDeviceContext.Get(), 5000.0f))
            return false;
@@ -577,10 +728,7 @@ bool Graphics::CreateConstantBuffer()
         COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
         this->cb_ps_light.data.ambientLightColor = XMFLOAT3(1.0f, 1.0f, 1.0f);
-        this->cb_ps_light.data.ambientLightStrength = 1.0f;
-        
-
-
+        this->cb_ps_light.data.ambientLightStrength = 1.0f; 
     }
     catch (COMException& exception)
     {

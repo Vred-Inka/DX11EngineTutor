@@ -99,28 +99,6 @@ void Engine::Update()
     {
         step = 0.0f;
     }
-
-
-    float x = mRadius * sinf(mPhi)*cosf(mTheta);
-    float z = mRadius * sinf(mPhi)*sinf(mTheta);
-    float y = mRadius * cosf(mPhi);
-    mgfx.mEyePosW = mgfx.mCamera3D.GetPositionFloat3();//XMFLOAT3(x, y, z);
-    // Build the view matrix.
-    XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
-    XMVECTOR target = XMVectorZero();
-    XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-    /* ...Irrelevant code omitted ... */
-    // Circle light over the land surface.
-    mgfx.mPointLight.Position.x = 70.0f*cosf(0.2f*mTimer.TotalTime());
-    mgfx.mPointLight.Position.z = 70.0f*sinf(0.2f*mTimer.TotalTime());
-    mgfx.mPointLight.Position.y = 50.0f;// MathHelper::Max(GetHillHeight(mgfx.mPointLight.Position.x, mgfx.mPointLight.Position.z), -3.0f) + 10.0f;
-    // The spotlight takes on the camera position and is aimed in the
-    // same direction the camera is looking. In this way, it looks
-    // like we are holding a flashlight.
-    mgfx.mSpotLight.Position = mgfx.mEyePosW;
-    XMStoreFloat3(&mgfx.mSpotLight.Direction,
-        XMVector3Normalize(target - pos));
-
     float cameraSpeed = 0.006f;
 
     if (mKeyboard.KeyIsPressed(VK_SHIFT))

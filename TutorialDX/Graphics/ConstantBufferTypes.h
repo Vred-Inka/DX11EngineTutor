@@ -1,5 +1,6 @@
 #pragma once
 #include <DirectXMath.h>
+#include "LightHelper.h"
 
 struct CB_VS_vertexshader
 {
@@ -25,20 +26,30 @@ struct CB_PS_light
     //16
     DirectX::XMFLOAT3 dynamicLightColor;//12
     float dynamicLightStrength;//4
-    DirectX::XMFLOAT3 dynamicLightPosition;//12
 
+    DirectX::XMFLOAT3 dynamicLightPosition;//12
     float mDynamicLightAttenuation_a;
-    float mDynamicLightAttenuation_b;
-    float mDynamicLightAttenuation_c;
 
     DirectX::XMFLOAT3 dirLightAmbient;
-    DirectX::XMFLOAT3 dirlightDiffuse;
-    DirectX::XMFLOAT3 dirLightSpectular;
-    DirectX::XMFLOAT3 dirLightDirection;
+    float mDynamicLightAttenuation_b;
 
+    DirectX::XMFLOAT3 dirlightDiffuse;
+    float mDynamicLightAttenuation_c;
+           
+   /// DirectX::XMFLOAT3 dirLightSpecular;
+    //float pad1;
+
+    //DirectX::XMFLOAT3 dirLightDirection;
+    //float pad2;
+
+    SimpleLight gSimpleLight;
+
+    Material gMaterial;
+    
     DirectionalLight gDirLight;
     PointLight gPointLight;
     SpotLight gSpotLight;
     DirectX::XMFLOAT3  gEyePosW;
+    float pad;
 };
 

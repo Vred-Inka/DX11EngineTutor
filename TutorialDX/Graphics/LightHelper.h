@@ -8,6 +8,19 @@ using namespace DirectX;
 //   Elements are packed into 4D vectors with the restriction that an element
 //   cannot straddle a 4D vector boundary.
 
+struct SimpleLight
+{
+    SimpleLight()
+    {
+        ZeroMemory(this, sizeof(SimpleLight));
+    }
+
+    XMFLOAT3 dir;
+    float pad;
+    XMFLOAT4 ambient;
+    XMFLOAT4 diffuse;
+};
+
 struct DirectionalLight
 {
     DirectionalLight() { ZeroMemory(this, sizeof(this)); }
@@ -16,7 +29,7 @@ struct DirectionalLight
     XMFLOAT4 Diffuse;
     XMFLOAT4 Specular;
     XMFLOAT3 Direction;
-    float Pad; // Pad the last float so we can set an array of lights if we wanted.
+    float IsEnable; 
 };
 
 struct PointLight
@@ -33,7 +46,7 @@ struct PointLight
 
     // Packed into 4D vector: (A0, A1, A2, Pad)
     XMFLOAT3 Att;
-    float Pad; // Pad the last float so we can set an array of lights if we wanted.
+    float IsEnable; // Pad the last float so we can set an array of lights if we wanted.
 };
 
 struct SpotLight
@@ -54,7 +67,7 @@ struct SpotLight
 
     // Packed into 4D vector: (Att, Pad)
     XMFLOAT3 Att;
-    float Pad; // Pad the last float so we can set an array of lights if we wanted.
+    float IsEnable; // Pad the last float so we can set an array of lights if we wanted.
 };
 
 struct Material
@@ -64,5 +77,6 @@ struct Material
     XMFLOAT4 Ambient;
     XMFLOAT4 Diffuse;
     XMFLOAT4 Specular; // w = SpecPower
-    XMFLOAT4 Reflect;
+    XMFLOAT3 Reflect;
+    float pad;
 };

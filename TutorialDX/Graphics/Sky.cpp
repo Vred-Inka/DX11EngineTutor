@@ -16,9 +16,9 @@ bool Sky::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, f
     HRESULT hr = mSkyConstantBuffer.Initialize(device, deviceContext);
     COM_ERROR_IF_FAILED(hr, "Failed to initialize constant buffer.");
 
-    //std::wstring cubemapFilename =L"Data/Textures/sunsetcube1024.dds";
-    //std::wstring cubemapFilename =L"Data/Textures/grasscube1024.dds";
-    std::wstring cubemapFilename = L"Data/Textures/sky.dds";
+    std::wstring cubemapFilename =L"Data/Textures/sunsetcube1024.dds";
+    ///std::wstring cubemapFilename =L"Data/Textures/t1.jpg";
+    //std::wstring cubemapFilename = L"Data/Textures/sky.dds";
 
     std::string s(cubemapFilename.begin(), cubemapFilename.end());
     std::string ex = StringHelper::GetFileExtension(s);
@@ -108,7 +108,7 @@ void Sky::Draw(ID3D11DeviceContext* dc, const Camera3D& camera)
 
     //XMMATRIX WVP = XMMatrixMultiply(T, camera.GetViewProjectionMatrix());
     dc->VSSetConstantBuffers(0, 1, mSkyConstantBuffer.GetAddressOf());
-    mSkyConstantBuffer.data.wvpMatrix = /*XMMatrixIdentity()*/ T * camera.GetViewProjectionMatrix();
+    mSkyConstantBuffer.data.wvpMatrix = XMMatrixIdentity() * camera.GetViewProjectionMatrix();
     dc->PSSetShaderResources(0, 1, mCubeTextureView.GetAddressOf());
 
     UINT stride = sizeof(XMFLOAT3);

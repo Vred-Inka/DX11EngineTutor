@@ -24,6 +24,11 @@ public:
     void RenderImGuiFrame(float (&transtalionOffeset)[3], float& alpha);
     void DrawTextExemple();
 
+    void DirectionalLightUpdate();
+    void PointLightUpdate();
+    void SpotLightUpdate();
+    void MaterialUpdate();
+
     Camera3D mCamera3D;
     Camera2D mCamera2D;
     Sprite mSprite;
@@ -31,6 +36,7 @@ public:
     RenderableGameObject mScene;
     std::vector<Light> mLights;
 
+    SimpleLight mSimpleLight;
     DirectionalLight mDirLight;
     PointLight mPointLight;
     SpotLight mSpotLight;
