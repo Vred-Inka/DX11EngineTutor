@@ -38,14 +38,6 @@ struct Material
     float pad;
 };
 
-struct SimpleLight
-{
-    float3 dir;
-    float pad;
-    float4 ambient;
-    float4 diffuse;
-};
-
 cbuffer lightBuffer : register(b0)
 {
     float3 ambientLightColor;
@@ -62,8 +54,6 @@ cbuffer lightBuffer : register(b0)
     
     float3 dirlightDiffuse;
     float dynamicLightAttenuation_c;    
-    
-    SimpleLight simpleLight;
     Material gMaterial;
     
     DirectionalLight gDirLight;
@@ -157,7 +147,7 @@ out float4 ambient, out float4 diffuse, out float4 spec)
 // The distance from surface to light.
     float d = length(lightVec);
 // Range test.if( d > L.Range )
-    return;
+    //return;
 // Normalize the light vector.
     lightVec /= d;
 // Ambient term.
@@ -201,8 +191,12 @@ float4 main(PS_INPUT pin) : SV_TARGET
     float4 diffuse = float4(0.0f, 0.0f, 0.0f, 0.0f);
     float4 spec = float4(0.0f, 0.0f, 0.0f, 0.0f);
 // Sum the light contribution from each light source.
-    float4 A, D, S;
+    float4 A = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    float4 D = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    float4 S = float4(0.0f, 0.0f, 0.0f, 0.0f);
     
+    float4 sampleColor = objTexture.Sample(objSamplerState, pin.inTexCoord);
+        
     if (gDirLight.IsEnable)
     {
         ComputeDirectionalLight(gMaterial, gDirLight, pin.inNormal, toEyeW, A, D, S);
@@ -221,17 +215,20 @@ float4 main(PS_INPUT pin) : SV_TARGET
     
     if (gSpotLight.IsEnable)
     {
-        float4 ASpot; 
-        ComputeSpotLight(gMaterial, gSpotLight, pin.inWorldPos, pin.inNormal, toEyeW, ASpot, D, S);
+        ComputeSpotLight(gMaterial, gSpotLight, pin.inWorldPos, pin.inNormal, toEyeW, A, D, S);
         
         ambient += A;
         diffuse += D;
         spec += S;
     }
+    
     float4 litColor = ambient + diffuse + spec;
-// Common to take alpha from diffuse material.
+
     litColor.a = gMaterial.Diffuse.a;
-    return litColor;
+    
+    float4 finalColor = sampleColor * litColor * ambientLightStrength;
+
+    return finalColor;
     
 }
 

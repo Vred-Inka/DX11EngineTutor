@@ -36,14 +36,6 @@ struct CB_PS_light
     DirectX::XMFLOAT3 dirlightDiffuse;
     float mDynamicLightAttenuation_c;
            
-   /// DirectX::XMFLOAT3 dirLightSpecular;
-    //float pad1;
-
-    //DirectX::XMFLOAT3 dirLightDirection;
-    //float pad2;
-
-    SimpleLight gSimpleLight;
-
     Material gMaterial;
     
     DirectionalLight gDirLight;

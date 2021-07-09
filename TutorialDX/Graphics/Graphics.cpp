@@ -195,7 +195,7 @@ void Graphics::DirectionalLightUpdate()
 
 void Graphics::PointLightUpdate()
 {
-    static bool flags[5] = { true, true, true, true, true };
+    static bool flags[6] = { true, true, true, true, true, false };
 
     ImGui::Checkbox("##10", &flags[0]);
     ImGui::SameLine();
@@ -230,8 +230,15 @@ void Graphics::PointLightUpdate()
         ImGui::DragFloat3("Point Att", &att.x, 0.01f, 0.0f, 1.0f);
         mPointLight.Att = !flags[4] ? disabled3 : att;
 
-        //mPointLight.Position = mLights[0].GetPositionFloat3();
-        ImGui::DragFloat3("Point Position", &mPointLight.Position.x, 0.1f, -1000.0f, 1000.0f);
+        ImGui::Checkbox("Pin to dynamic light object", &flags[5]);
+        if (flags[5])
+        {
+            mPointLight.Position = mLights[0].GetPositionFloat3();
+        }
+        else
+        {
+            ImGui::DragFloat3("Point Position", &mPointLight.Position.x, 0.1f, -1000.0f, 1000.0f);
+        }
         ImGui::DragFloat("Point Range", &mPointLight.Range, 0.1f, -1000.0f, 1000.0f);
     }
     ImGui::Separator();
@@ -242,7 +249,7 @@ void Graphics::PointLightUpdate()
 
 void Graphics::SpotLightUpdate()
 {
-    static bool flags[6] = { true, true, true, true, true };
+    static bool flags[6] = { true, true, true, true, true, false };
 
     ImGui::Checkbox("##20", &flags[0]);
     ImGui::SameLine();
@@ -276,18 +283,23 @@ void Graphics::SpotLightUpdate()
         ImGui::SameLine();
         ImGui::DragFloat3("Spot Att", &att.x, 0.01f, 0.0f, 1.0f);
         mSpotLight.Att = !flags[4] ? disabled3 : att;
-
-       
-     
+        
         XMFLOAT3 campos = mLights[0].GetPositionFloat3();
-        mSpotLight.Position = campos;
-        ImGui::DragFloat3("Spot Position", &mSpotLight.Position.x, 0.1f, -10000.0f, 10000.0f);
+        //mSpotLight.Position = campos;
+       // ImGui::DragFloat3("Spot Position", &mSpotLight.Position.x, 0.1f, -10000.0f, 10000.0f);
+        ImGui::DragFloat3("Spot Position", &mLights[1].pos.x, 1.0f, -1000000.0f, 1000000.0f);
 
-        XMVECTOR pos = XMVectorSet(campos.x, campos.y, campos.z, 1.0f);
-        XMVECTOR target = XMVectorZero();
-        mSpotLight.Position = mEyePosW;
-        XMStoreFloat3(&mSpotLight.Direction,
-            XMVector3Normalize(target - pos));
+        ImGui::Checkbox("To GameObject", &flags[5]);
+
+        if (flags[5])
+        {
+            XMVECTOR target = mGameObject.GetPositionVector();
+            mSpotLight.Position = mLights[1].GetPositionFloat3();
+            XMVECTOR spotpos = XMVectorSet(mSpotLight.Position.x, mSpotLight.Position.y, mSpotLight.Position.z, 1.0f);
+            XMStoreFloat3(&mSpotLight.Direction,
+                XMVector3Normalize(target - spotpos));
+        }
+
         ImGui::DragFloat3("Spot Direction", &mSpotLight.Direction.x, 0.1f, -1000.0f, 1000.0f);
 
 
@@ -302,9 +314,11 @@ void Graphics::SpotLightUpdate()
 
 void Graphics::MaterialUpdate()
 {
-    mLandMat.Ambient = XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
-    mLandMat.Diffuse = XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
-    mLandMat.Specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+   // XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+   // XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+    mLandMat.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f); // XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
+    mLandMat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f); //XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
+    mLandMat.Specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f); //XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
     cb_ps_light.data.gMaterial = mLandMat;
 
     mWavesMat.Ambient = XMFLOAT4(0.137f, 0.42f, 0.556f, 1.0f);
@@ -621,7 +635,7 @@ bool Graphics::InitializeScene()
 
         mGameObject.SetPosition(10.0f, 0.0f, -12.0f);
 
-        for (int i = 0; i <1; i++)
+        for (int i = 0; i <2; i++)
         {
             Light pointLight;
             pointLight.mLightColor = XMFLOAT3(i*0.1, 1.0f - i * 0.1f, 0.2f* i);
@@ -631,14 +645,11 @@ bool Graphics::InitializeScene()
             //mLights[i].SetPosition(5*i + 5.0f,  7.0f, 10*i + -15.0f);
         }    
 
-        mSimpleLight.dir = XMFLOAT3(0.25f, 0.5f, -1.0f);
-        mSimpleLight.ambient = XMFLOAT4(0.2f, 0.0f, 0.2f, 1.0f);
-        mSimpleLight.diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-        cb_ps_light.data.gSimpleLight = mSimpleLight;
+        mLights[1].SetPosition(-8.0f, 1.0f, 0.0f);
 
-        mDirLight.Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
-        mDirLight.Diffuse = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
-        mDirLight.Specular = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+        mDirLight.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+        mDirLight.Diffuse = XMFLOAT4(1.0, 1.0f, 0.0f, 1.0f);
+        mDirLight.Specular = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
         mDirLight.Direction = XMFLOAT3(0.57735f, -0.57735f, 0.57735f);
         cb_ps_light.data.gDirLight = mDirLight;
 

@@ -36,7 +36,6 @@ public:
     RenderableGameObject mScene;
     std::vector<Light> mLights;
 
-    SimpleLight mSimpleLight;
     DirectionalLight mDirLight;
     PointLight mPointLight;
     SpotLight mSpotLight;
