@@ -42,18 +42,6 @@ cbuffer lightBuffer : register(b0)
 {
     float3 ambientLightColor;
     float ambientLightStrength;
-
-    float3 dynamicLightColor;
-    float dynamicLightStrength;
-    
-    float3 dynamicLightPosition;    
-    float dynamicLightAttenuation_a;
-    
-    float3 dirLightAmbient;
-    float dynamicLightAttenuation_b;    
-    
-    float3 dirlightDiffuse;
-    float dynamicLightAttenuation_c;    
     Material gMaterial;
     
     DirectionalLight gDirLight;
@@ -231,34 +219,3 @@ float4 main(PS_INPUT pin) : SV_TARGET
     return finalColor;
     
 }
-
-/*
-float4 main(PS_INPUT input) : SV_TARGET
-{
-    float3 sampleColor = objTexture.Sample(objSamplerState, input.inTexCoord);
-    float3 sampleColor = input.inNormal;
-
-    float3 ambientLight = ambientLightColor * ambientLightStrength;
-
-    float3 appliedLight = ambientLight;
-
-    float3 vectorToLight = normalize(dynamicLightPosition - input.inWorldPos);
-
-    float3 diffuseLightIntensity = max(dot(vectorToLight, input.inNormal), 0);
-    
-    float distanceToLight = distance(dynamicLightPosition, input.inWorldPos);
-
-    float attenuationFactor = 1 / (dynamicLightAttenuation_a + dynamicLightAttenuation_b * distanceToLight + dynamicLightAttenuation_c * pow(distanceToLight, 2));
-
-    diffuseLightIntensity *= attenuationFactor;
-
-    float3 diffuseLight = diffuseLightIntensity * dynamicLightStrength * dynamicLightColor;
-
-    appliedLight += diffuseLight;
-
-    float3 finalColor = sampleColor * appliedLight;
-
-    return float4(finalColor, 1.0f);
-}
-*/
-

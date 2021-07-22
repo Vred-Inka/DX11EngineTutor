@@ -24,7 +24,7 @@ struct CB_PS_light
     DirectX::XMFLOAT3 ambientLightColor;//12
     float ambientLightStrength;//4
     //16
-    DirectX::XMFLOAT3 dynamicLightColor;//12
+    /*DirectX::XMFLOAT3 dynamicLightColor;//12
     float dynamicLightStrength;//4
 
     DirectX::XMFLOAT3 dynamicLightPosition;//12
@@ -35,6 +35,7 @@ struct CB_PS_light
 
     DirectX::XMFLOAT3 dirlightDiffuse;
     float mDynamicLightAttenuation_c;
+    */
            
     Material gMaterial;
     

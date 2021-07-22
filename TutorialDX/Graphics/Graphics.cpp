@@ -29,13 +29,6 @@ bool Graphics::Initialize(HWND hwnd, int width, int height)
 
 void Graphics::RenderFrame()
 {
-    //cb_ps_light.data.dynamicLightColor = mLight.mLightColor;
-    //cb_ps_light.data.dynamicLightStrength = mLight.mLightStrength;
-    cb_ps_light.data.dynamicLightPosition = mLights[0].GetPositionFloat3();
-    cb_ps_light.data.mDynamicLightAttenuation_a = mLights[0].mAttenuation_a;
-    cb_ps_light.data.mDynamicLightAttenuation_b = mLights[0].mAttenuation_b;
-    cb_ps_light.data.mDynamicLightAttenuation_c = mLights[0].mAttenuation_c;
-
     mDeviceContext->PSSetConstantBuffers(0, 1, cb_ps_light.GetAddressOf());
 
     float bgcolor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -80,14 +73,6 @@ void Graphics::RenderFrame()
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
-    //Create ImGui Test Window
-    ImGui::Begin("Light Controls");
-    ImGui::DragFloat3("Ambient Light Color", &cb_ps_light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
-    ImGui::DragFloat("Ambient Light Strength", &cb_ps_light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
-    ImGui::Separator();
-    ImGui::DragFloat3("Denamic Light Color", &cb_ps_light.data.dynamicLightColor.x, 0.01f, 0.0f, 1.0f);
-    ImGui::DragFloat("Dinamic Light Strength", &cb_ps_light.data.dynamicLightStrength, 0.01f, 0.0f, 100.0f);
-    ImGui::End();
 
     ImGui::Begin("Positions");
 
@@ -107,6 +92,8 @@ void Graphics::RenderFrame()
     ImGui::End();
 
     ImGui::Begin("Lights");
+    //ImGui::DragFloat3("Ambient Light Color", &cb_ps_light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
+    ImGui::DragFloat("Ambient Light Strength", &cb_ps_light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
     DirectionalLightUpdate();
     MaterialUpdate();
     PointLightUpdate();
@@ -139,12 +126,6 @@ void Graphics::RenderFrame()
 
 
     DrawTextExemple();
-    
-    //ImGui::Begin("Attenuation Controls");
-    //ImGui::DragFloat("Dynamic light Attenuation a", &cb_ps_light.data.mDynamicLightAttenuation_a, 0.01f, 0.1f, 10.0f);
-    //ImGui::DragFloat("Dynamic light Attenuation b", &cb_ps_light.data.mDynamicLightAttenuation_b, 0.01f, 0.0f, 10.0f);
-    //ImGui::DragFloat("Dynamic light Attenuation c", &cb_ps_light.data.mDynamicLightAttenuation_c, 0.01f, 0.0f, 10.0f);
-    //ImGui::End();
 
     //Assemble Together Draw Data
     ImGui::Render();
@@ -314,8 +295,6 @@ void Graphics::SpotLightUpdate()
 
 void Graphics::MaterialUpdate()
 {
-   // XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
-   // XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
     mLandMat.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f); // XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
     mLandMat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f); //XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
     mLandMat.Specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f); //XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
@@ -673,9 +652,9 @@ bool Graphics::InitializeScene()
         mSpotLight.Range = 10000.0f;
         cb_ps_light.data.gSpotLight = mSpotLight;
 
-        cb_ps_light.data.dynamicLightStrength = 10.0f;
-        cb_ps_light.data.ambientLightStrength = 0.5f;
-        cb_ps_light.data.dynamicLightColor.x  = 1.0f;
+       // cb_ps_light.data.dynamicLightStrength = 10.0f;
+      //  cb_ps_light.data.ambientLightStrength = 0.5f;
+       // cb_ps_light.data.dynamicLightColor.x  = 1.0f;
 
         mLights[0].SetPosition(5.0f, 12.0f, -15.0f);
 
