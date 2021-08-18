@@ -119,3 +119,8 @@ void Sky::Draw(ID3D11DeviceContext* dc, const Camera3D& camera)
     mSkyConstantBuffer.ApplyChanges();
     dc->DrawIndexed(mIndexCount, 0, 0);
 }
+
+ID3D11ShaderResourceView* Sky::GetCubeTextureView()
+{
+    return mCubeTextureView.Get();
+}

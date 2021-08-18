@@ -40,6 +40,7 @@ void Graphics::RenderFrame()
     mDeviceContext->OMSetDepthStencilState(mDepthStencilState.Get(), 0);
     mDeviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
     mDeviceContext->PSSetSamplers(0, 1, mSamplerState.GetAddressOf());
+    mDeviceContext->PSSetSamplers(1, 1, mSamplerStateAnisotropic.GetAddressOf());
     
     //sprite mask
     mDeviceContext->OMSetDepthStencilState(mDepthStencilState_drawMask.Get(), 0);
@@ -94,8 +95,8 @@ void Graphics::RenderFrame()
     ImGui::Begin("Lights");
     //ImGui::DragFloat3("Ambient Light Color", &cb_ps_light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
     ImGui::DragFloat("Ambient Light Strength", &cb_ps_light.data.ambientLightStrength, 0.01f, 0.0f, 1.0f);
-    DirectionalLightUpdate();
     MaterialUpdate();
+    DirectionalLightUpdate();
     PointLightUpdate();
     SpotLightUpdate();
     cb_ps_light.ApplyChanges();
@@ -110,8 +111,23 @@ void Graphics::RenderFrame()
 
         mLights[0].SetPosition(lightPosition[0], lightPosition[1], lightPosition[2]);
         mLights[0].SetRotation(lightRotation[0], lightRotation[1], lightRotation[2]);
-               
-        mScene.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
+              
+        static bool isSceneVisible = true;
+
+        ImGui::Checkbox("Show Scene", &isSceneVisible);
+        ImGui::SameLine();
+        if (isSceneVisible)
+        {
+            mScene.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
+        }
+
+        ImGui::NewLine();
+
+        static bool needReflections = true;
+
+        ImGui::Checkbox("Show reflections", &needReflections);
+        cb_ps_light.data.gReflectionsEnabled = needReflections;
+
         mGameObject.Draw(mCamera3D.GetViewMatrix() * mCamera3D.GetProjectionMatrix());
 
         mDeviceContext->PSSetShader(mPixelShader_nolight.GetShader(), NULL, 0);
@@ -208,7 +224,7 @@ void Graphics::PointLightUpdate()
 
         ImGui::Checkbox("##14", &flags[4]);
         ImGui::SameLine();
-        ImGui::DragFloat3("Point Att", &att.x, 0.01f, 0.0f, 1.0f);
+        ImGui::DragFloat3("Point Att", &att.x, 0.1f, -1000.0f, 10000.0f);
         mPointLight.Att = !flags[4] ? disabled3 : att;
 
         ImGui::Checkbox("Pin to dynamic light object", &flags[5]);
@@ -226,6 +242,8 @@ void Graphics::PointLightUpdate()
 
     mPointLight.IsEnable = flags[0];
     cb_ps_light.data.gPointLight = mPointLight;
+    cb_ps_light.data.lights[0] = mPointLight;
+    //cb_ps_light.data.lights[1] = mLights[0];
 }
 
 void Graphics::SpotLightUpdate()
@@ -295,14 +313,28 @@ void Graphics::SpotLightUpdate()
 
 void Graphics::MaterialUpdate()
 {
-    mLandMat.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f); // XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
-    mLandMat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f); //XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
-    mLandMat.Specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f); //XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
-    cb_ps_light.data.gMaterial = mLandMat;
+    static bool showMaterial = true;
 
-    mWavesMat.Ambient = XMFLOAT4(0.137f, 0.42f, 0.556f, 1.0f);
-    mWavesMat.Diffuse = XMFLOAT4(0.137f, 0.42f, 0.556f, 1.0f);
-    mWavesMat.Specular = XMFLOAT4(0.8f, 0.8f, 0.8f, 96.0f);
+    ImGui::Checkbox("Material", &showMaterial);
+    ImGui::SameLine();
+    ImGui::Text("Material");
+
+    if (showMaterial)
+    {
+        mLandMat.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f); // XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
+        mLandMat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f); //XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
+        mLandMat.Specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f); //XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+        //cb_ps_light.data.gMaterial = mLandMat;
+
+    //    mWavesMat.Ambient = XMFLOAT4(0.137f, 0.42f, 0.556f, 1.0f);
+    //    mWavesMat.Diffuse = XMFLOAT4(0.137f, 0.42f, 0.556f, 1.0f);
+    //    mWavesMat.Specular = XMFLOAT4(0.8f, 0.8f, 0.8f, 96.0f);
+        ImGui::DragFloat4("Material Ambient", &mWavesMat.Ambient.x, 0.1f, 0.0f, 1.0f);
+        ImGui::DragFloat4("Material Diffuse", &mWavesMat.Diffuse.x, 0.1f, 0.0f, 1.0f);
+        ImGui::DragFloat4("Material Specular", &mWavesMat.Specular.x, 0.1f, 0.0f, 1.0f);
+        ImGui::DragFloat3("Material reflection", &mWavesMat.Reflect.x, 0.1f, 0.0f, 1.0f);
+    }
+    cb_ps_light.data.gMaterial = mWavesMat;
 }
 
 void Graphics::DrawTextExemple()
@@ -473,6 +505,15 @@ bool Graphics::InitializeDirectX(HWND hwnd)
         sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
         sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
         hr = this->mDevice->CreateSamplerState(&sampDesc, this->mSamplerState.GetAddressOf()); //Create sampler state
+        COM_ERROR_IF_FAILED(hr, "Failed to create sampler state.");  
+      
+        CD3D11_SAMPLER_DESC sampDescAnisotropic(D3D11_DEFAULT);
+        sampDescAnisotropic.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+        sampDescAnisotropic.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+        sampDescAnisotropic.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+        sampDescAnisotropic.Filter = D3D11_FILTER_ANISOTROPIC;
+        sampDescAnisotropic.MaxAnisotropy = 4;
+        hr = this->mDevice->CreateSamplerState(&sampDescAnisotropic, this->mSamplerStateAnisotropic.GetAddressOf()); //Create sampler state
         COM_ERROR_IF_FAILED(hr, "Failed to create sampler state.");
     }
     catch (COMException & exception)
@@ -637,7 +678,7 @@ bool Graphics::InitializeScene()
         mPointLight.Ambient =  XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
         mPointLight.Diffuse =  XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
         mPointLight.Specular =  XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
-        mPointLight.Att =  XMFLOAT3(0.0f, 0.1f, 0.0f);
+        mPointLight.Att =  XMFLOAT3(1.0f, 0.1f, 1.0f);
         mPointLight.Range =  20.0f;
         mPointLight.Position = XMFLOAT3(32.0f, 5.0f, -19.0f);
         cb_ps_light.data.gPointLight = mPointLight;
@@ -652,6 +693,11 @@ bool Graphics::InitializeScene()
         mSpotLight.Range = 10000.0f;
         cb_ps_light.data.gSpotLight = mSpotLight;
 
+        mWavesMat.Ambient = XMFLOAT4(0.137f, 0.42f, 0.556f, 1.0f);
+        mWavesMat.Diffuse = XMFLOAT4(0.137f, 0.42f, 0.556f, 1.0f);
+        mWavesMat.Specular = XMFLOAT4(0.8f, 0.8f, 0.8f, 96.0f);
+        mWavesMat.Reflect = XMFLOAT3(0.5f, 0.5f, 0.5f);
+
        // cb_ps_light.data.dynamicLightStrength = 10.0f;
       //  cb_ps_light.data.ambientLightStrength = 0.5f;
        // cb_ps_light.data.dynamicLightColor.x  = 1.0f;
@@ -660,6 +706,9 @@ bool Graphics::InitializeScene()
 
        if (!mSky.Initialize(mDevice.Get(), mDeviceContext.Get(), 5000.0f))
            return false;
+
+       Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> skyView = mSky.GetCubeTextureView();
+       mDeviceContext->PSSetShaderResources(1,1, skyView.GetAddressOf());
 
         
         if (!mSprite.Initialize(mDevice.Get(), mDeviceContext.Get(), 256, 256, "Data/Textures/mask_2.png", cb_vs_vertexshader_2d))

@@ -23,7 +23,7 @@
     <ProjectGuid>{EDA0727A-E361-4871-8BEF-2B31F83EBA88}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>TutorialDX</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

@@ -43,13 +43,14 @@ cbuffer lightBuffer : register(b0)
     float3 ambientLightColor;
     float ambientLightStrength;
     Material gMaterial;
-    
+
     DirectionalLight gDirLight;
     PointLight gPointLight;
     SpotLight gSpotLight;
     float3 gEyePosW;
-    float pad;
-     
+    float gReflectionsEnabled;
+
+    PointLight lights[100];
 }
 
 cbuffer cbPerObject
@@ -59,7 +60,10 @@ cbuffer cbPerObject
 }
 
 Texture2D objTexture : TEXTURE : register(t0);
+TextureCube gCubeMap : register(t1);
+
 SamplerState objSamplerState : SAMPLER : register(s0);
+SamplerState sampAnisState : SAMPLER : register(s1);
 
 void ComputeDirectionalLight(Material mat, DirectionalLight L,float3 normal, float3 toEye,
 out float4 ambient,out float4 diffuse,out float4 spec)
@@ -118,7 +122,8 @@ float diffuseFactor = dot(lightVec, normal);
     } 
     //    Attenuate
 
-    float att = 1.0f / dot(L.Att, float3(1.0f, d, d * d));
+    //float att = 1.0f / dot(L.Att, float3(1.0f, d, d * d));
+    float att = 1.0f / (L.Att.x + L.Att.y * d, L.Att.z * d * d);
     diffuse *= att;
     spec *= att;
 }
@@ -210,11 +215,23 @@ float4 main(PS_INPUT pin) : SV_TARGET
         spec += S;
     }
     
-    float4 litColor = ambient + diffuse + spec;
+    float4 litColor = sampleColor* (ambient + diffuse) + spec;
+    //float4 litColor = sampleColor + ambient + diffuse + spec;
 
-    litColor.a = gMaterial.Diffuse.a;
+    //litColor.a = gMaterial.Diffuse.a;
     
-    float4 finalColor = sampleColor * litColor * ambientLightStrength;
+    if (gReflectionsEnabled)
+    {
+        //return float4(1.0f,1.0f,1.0f,1.0f);
+        float3 incident = -toEyeW;//gEyePosW;
+        float3 reflectionVector = reflect(incident, pin.inNormal);
+        
+        float4 reflectColor = gCubeMap.Sample(sampAnisState, reflectionVector);
+     
+        litColor += float4(gMaterial.Reflect, 1.0f) * reflectColor;
+    }
+
+    float4 finalColor = litColor * ambientLightStrength;
 
     return finalColor;
     
