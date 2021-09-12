@@ -13,6 +13,9 @@ public:
     bool Initialize(ID3D11Device* device, ID3D11DeviceContext * deviceContext, float skySphereRadius);
     void Draw(ID3D11DeviceContext* dc, const Camera3D& camera);
 
+    ID3D11ShaderResourceView* GetCubeTextureView();
+
+
 private:
     ConstantBuffer<CB_VS_SkyVertexshader> mSkyConstantBuffer;
     IndexBuffer mSkyIndexBuffer;

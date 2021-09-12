@@ -23,26 +23,15 @@ struct CB_PS_light
 {
     DirectX::XMFLOAT3 ambientLightColor;//12
     float ambientLightStrength;//4
-    //16
-    /*DirectX::XMFLOAT3 dynamicLightColor;//12
-    float dynamicLightStrength;//4
-
-    DirectX::XMFLOAT3 dynamicLightPosition;//12
-    float mDynamicLightAttenuation_a;
-
-    DirectX::XMFLOAT3 dirLightAmbient;
-    float mDynamicLightAttenuation_b;
-
-    DirectX::XMFLOAT3 dirlightDiffuse;
-    float mDynamicLightAttenuation_c;
-    */
-           
+             
     Material gMaterial;
     
     DirectionalLight gDirLight;
     PointLight gPointLight;
     SpotLight gSpotLight;
     DirectX::XMFLOAT3  gEyePosW;
-    float pad;
+    float gReflectionsEnabled;
+
+    PointLight lights[100];
 };
 
