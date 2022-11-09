@@ -1,5 +1,17 @@
 #include "Model.h"
 
+/*Model::Model(Model& model)
+{
+    mDevice = model.mDevice;
+    mDeviceContext = model.mDeviceContext;
+    cb_vs_vertexshader = model.cb_vs_vertexshader;
+
+    mDirectory = model.mDirectory;
+    
+    //std::memcpy(mMeshes.begin(), model.mMeshes.begin(), model.mMeshes.size());
+}
+*/
+
 bool Model::Initialize(const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext * deviceContext, ConstantBuffer<CB_VS_vertexshader>& cb_vs_vertexshader)
 {
     this->mDevice = device;

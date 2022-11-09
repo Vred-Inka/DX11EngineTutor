@@ -79,8 +79,8 @@ void Engine::Update()
         }
     }
 
-    mgfx.mGameObject.AdjustRotation( 0.0f, 0.001f*dt,  0.0f);
-    XMFLOAT3 goPos = mgfx.mLights[0].GetRotationFloat3();
+    mgfx.mScene.mGameObject.AdjustRotation( 0.0f, 0.001f*dt,  0.0f);
+    XMFLOAT3 goPos = mgfx.mScene.mLights[0].GetRotationFloat3();
     float goPosition[3] = { goPos.x, goPos.y, goPos.z };
 
     float r = 30;
@@ -92,7 +92,7 @@ void Engine::Update()
 
     //mgfx.mLight.AdjustPosition(0.0045f * dt, 0.0f, 0.005f * goPos.x * dt );
     //mgfx.mLight.AdjustPosition(0.0f, 0.0f, 0.05f * std::pow(t,3) - 0.01 * std::pow(t,4) );
-    mgfx.mLights[0].SetPosition(r * std::cos(step), 5.0f, r * std::sin(step));
+    mgfx.mScene.mLights[0].SetPosition(r * std::cos(step), 5.0f, r * std::sin(step));
 
     step += 0.001f;
     if (step > 6.3f)
@@ -135,25 +135,25 @@ void Engine::Update()
     {
         XMVECTOR lightPosition = this->mgfx.mCamera3D.GetPositionVector();
         lightPosition += this->mgfx.mCamera3D.GetForwardVector();
-        this->mgfx.mLights[0].SetPosition(lightPosition);
-        this->mgfx.mLights[0].SetRotation(this->mgfx.mCamera3D.GetRotationFloat3());
+        this->mgfx.mScene.mLights[0].SetPosition(lightPosition);
+        this->mgfx.mScene.mLights[0].SetRotation(this->mgfx.mCamera3D.GetRotationFloat3());
     }
 
     if (mKeyboard.KeyIsPressed(VK_UP))
     {
-        this->mgfx.mGameObject.AdjustPosition(this->mgfx.mCamera3D.GetForwardVector(true) * cameraSpeed * dt);
+        this->mgfx.mScene.mGameObject.AdjustPosition(this->mgfx.mCamera3D.GetForwardVector(true) * cameraSpeed * dt);
     }
     if (mKeyboard.KeyIsPressed(VK_DOWN))
     {
-        this->mgfx.mGameObject.AdjustPosition(this->mgfx.mCamera3D.GetBackwardVector(true) * cameraSpeed * dt);
+        this->mgfx.mScene.mGameObject.AdjustPosition(this->mgfx.mCamera3D.GetBackwardVector(true) * cameraSpeed * dt);
     }
     if (mKeyboard.KeyIsPressed(VK_LEFT))
     {
-        this->mgfx.mGameObject.AdjustPosition(this->mgfx.mCamera3D.GetLeftVector() * cameraSpeed * dt);
+        this->mgfx.mScene.mGameObject.AdjustPosition(this->mgfx.mCamera3D.GetLeftVector() * cameraSpeed * dt);
     }
     if (mKeyboard.KeyIsPressed(VK_RIGHT))
     {
-        this->mgfx.mGameObject.AdjustPosition(this->mgfx.mCamera3D.GetRightVector() * cameraSpeed * dt);
+        this->mgfx.mScene.mGameObject.AdjustPosition(this->mgfx.mCamera3D.GetRightVector() * cameraSpeed * dt);
     }
     
 }

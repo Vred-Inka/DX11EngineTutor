@@ -15,10 +15,30 @@
 #include "Camera2D.h"
 #include "Sprite.h"
 #include "Sky.h"
+#include "Grid.h"
+#include "../ObjectManager.h"
+
+struct Scene
+{
+    vector<Mesh*> Meshes;
+    vector<Light*> Lights;
+
+    RenderableGameObject mGameObject;
+    RenderableGameObject mScene;
+    std::vector<Light> mLights;
+
+    DirectionalLight mDirLight;
+    PointLight mPointLight;
+    SpotLight mSpotLight;
+};
 
 class Graphics 
 {
+    ObjectManager mObjectManager;
+
 public:
+    Scene mScene;
+
     bool Initialize(HWND hwnd, int width, int height);
     void RenderFrame();
     void RenderImGuiFrame(float (&transtalionOffeset)[3], float& alpha);
@@ -32,19 +52,12 @@ public:
     Camera3D mCamera3D;
     Camera2D mCamera2D;
     Sprite mSprite;
-    RenderableGameObject mGameObject;
-    RenderableGameObject mScene;
-    std::vector<Light> mLights;
 
-    DirectionalLight mDirLight;
-    PointLight mPointLight;
-    SpotLight mSpotLight;
     Material mLandMat;
     Material mWavesMat;
-
     XMFLOAT3 mEyePosW;
-
     Sky mSky;
+    Grid mGrid;
 
 private:
     bool InitializeDirectX(HWND hwnd);
